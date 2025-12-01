@@ -68,10 +68,10 @@ export const vocabulary = pgTable('vocabulary', {
   partOfSpeech: varchar('part_of_speech', { length: 50 }), // 'noun', 'verb', 'adjective', etc.
   jlptLevel: varchar('jlpt_level', { length: 10 }).notNull(),
   kanjiComponents: jsonb('kanji_components').$type<number[]>().default([]), // Foreign keys to kanji.id
-  exampleSentences: jsonb('example_sentences').$type<{ 
-    japanese: string; 
-    reading: string; 
-    english: string 
+  exampleSentences: jsonb('example_sentences').$type<{
+    japanese: string;
+    reading: string;
+    english: string
   }[]>(),
   audioUrl: text('audio_url'), // URL to pronunciation audio
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -107,6 +107,8 @@ export const userProfiles = pgTable('user_profiles', {
   email: text('email').notNull().unique(),
   displayName: text('display_name'),
   avatarUrl: text('avatar_url'),
+  location: text('location'), // User's location/city
+  bio: text('bio'), // User's bio/description
   currentCourseId: integer('current_course_id').references(() => courses.id),
   totalXp: integer('total_xp').notNull().default(0),
   studyStreak: integer('study_streak').notNull().default(0),
