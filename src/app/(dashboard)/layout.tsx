@@ -43,7 +43,7 @@ export default async function DashboardLayout({
 
     const navItems = [
         { href: '/learn', icon: Home, label: 'Dashboard' },
-        { href: '/learn', icon: BookOpen, label: 'Learn' },
+        { href: '/library', icon: BookOpen, label: 'Library' },
         { href: '/review', icon: RotateCcw, label: 'Review' },
         { href: '/settings', icon: Settings, label: 'Settings' },
     ];

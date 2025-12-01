@@ -33,8 +33,18 @@ async function getUserData() {
         redirect('/login');
     }
 
-    // Get user profile
-    const [profile] = await db.select().from(userProfiles).where(eq(userProfiles.id, user.id));
+    // Get user profile from database
+    let [profile] = await db.select().from(userProfiles).where(eq(userProfiles.id, user.id));
+
+    // If profile doesn't exist, create it
+    if (!profile) {
+        [profile] = await db.insert(userProfiles).values({
+            id: user.id,
+            email: user.email!,
+            displayName: user.user_metadata?.name || null,
+            avatarUrl: user.user_metadata?.avatar_url || null,
+        }).returning();
+    }
 
     return { user, profile };
 }

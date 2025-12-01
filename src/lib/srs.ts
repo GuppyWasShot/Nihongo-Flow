@@ -94,10 +94,12 @@ export function getIntervalDescription(stage: number): string {
     const hours = SRS_INTERVALS[stage];
 
     if (hours === 0) return 'Now';
-    if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''}`;
+    if (hours < 24) {
+        return hours === 4 ? '4 hours' : hours === 8 ? '8 hours' : `${hours} hours`;
+    }
 
     const days = hours / 24;
-    if (days < 7) return `${days} day${days !== 1 ? 's' : ''}`;
+    if (days < 7) return `${days}  day${days !== 1 ? 's' : ''}`;
 
     const weeks = days / 7;
     if (weeks < 4) return `${weeks} week${weeks !== 1 ? 's' : ''}`;
