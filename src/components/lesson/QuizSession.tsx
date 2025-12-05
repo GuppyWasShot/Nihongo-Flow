@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ArrowRight, CheckCircle2, XCircle, Trophy } from 'lucide-react';
+import { X, ArrowRight, CheckCircle2, XCircle, Trophy, Lightbulb } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import * as wanakana from 'wanakana';
 import { completeLesson } from '../../app/(dashboard)/learn/[courseId]/unit/[unitId]/lesson/[lessonId]/actions';
@@ -16,6 +16,7 @@ interface QuizSessionProps {
             instructions?: string;
             characters?: string[];
             romaji?: string[];
+            sentences?: Array<{ q: string; a: string; hint?: string }>;
         };
     };
     courseId: string;
@@ -26,7 +27,8 @@ interface QuizItem {
     id: number;
     question: string;
     answer: string;
-    type: 'vocabulary' | 'kanji';
+    type: 'vocabulary' | 'kanji' | 'grammar';
+    hint?: string;
 }
 
 interface QuizResult {
@@ -48,15 +50,26 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
     const [incorrectQueue, setIncorrectQueue] = useState<QuizItem[]>([]);
     const [isComplete, setIsComplete] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [failureCount, setFailureCount] = useState<Map<number, number>>(new Map());
+    const [showHint, setShowHint] = useState(false);
 
     // Initialize quiz items from lesson content
     useEffect(() => {
-        if (lesson.content.characters && lesson.content.romaji) {
+        if (lesson.type === 'vocab_drill' && lesson.content.characters && lesson.content.romaji) {
             const items: QuizItem[] = lesson.content.characters.map((char, idx) => ({
                 id: idx + 1,
                 question: char,
                 answer: lesson.content.romaji![idx],
                 type: 'vocabulary' as const,
+            }));
+            setQuizItems(items);
+        } else if (lesson.type === 'grammar' && lesson.content.sentences) {
+            const items: QuizItem[] = lesson.content.sentences.map((sentence, idx) => ({
+                id: idx + 1,
+                question: sentence.q,
+                answer: sentence.a,
+                type: 'grammar' as const,
+                hint: sentence.hint,
             }));
             setQuizItems(items);
         }
@@ -83,15 +96,28 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
         if (!currentItem || showFeedback) return;
 
         // Convert user answer to hiragana for comparison
-        const normalizedAnswer = wanakana.toHiragana(userAnswer.trim());
-        const correct = normalizedAnswer === currentItem.answer;
+        const normalizedAnswer = wanakana.toHiragana(userAnswer.trim().toLowerCase());
+        const normalizedCorrect = wanakana.toHiragana(currentItem.answer.trim().toLowerCase());
+        const correct = normalizedAnswer === normalizedCorrect;
 
         setIsCorrect(correct);
         setShowFeedback(true);
 
+        // Track failure count for hint system
+        if (!correct) {
+            const currentFailures = failureCount.get(currentItem.id) || 0;
+            const newFailures = currentFailures + 1;
+            setFailureCount(new Map(failureCount.set(currentItem.id, newFailures)));
+
+            // Show hint after 3 failures on grammar questions
+            if (newFailures >= 3 && currentItem.type === 'grammar' && currentItem.hint) {
+                setShowHint(true);
+            }
+        }
+
         // Track result
         const result: QuizResult = {
-            itemType: currentItem.type,
+            itemType: currentItem.type === 'grammar' ? 'vocabulary' : currentItem.type,
             itemId: currentItem.id,
             correct,
         };
@@ -105,6 +131,7 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
 
     const handleNext = () => {
         setShowFeedback(false);
+        setShowHint(false);
         setUserAnswer('');
 
         // Check if we're at the end of the main quiz
@@ -136,7 +163,6 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
         });
 
         if ('success' in result && result.success) {
-            // Redirect back to course after a delay
             setTimeout(() => {
                 router.push(`/learn/${courseId}`);
             }, 2000);
@@ -149,6 +175,7 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
         }
     };
 
+    // Completion screen
     if (isComplete) {
         const correctCount = results.filter(r => r.correct).length;
         const accuracy = Math.round((correctCount / results.length) * 100);
@@ -216,6 +243,36 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
         return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>;
     }
 
+    // Render grammar question with sentence completion
+    const renderGrammarQuestion = () => {
+        const parts = currentItem.question.split('_');
+
+        return (
+            <div className="bg-white rounded-2xl border-2 border-gray-200 p-12 mb-6 text-center shadow-lg">
+                <p className="text-sm text-gray-600 mb-6">Fill in the blank</p>
+                <div className="text-4xl font-bold text-gray-900 mb-8 flex items-center justify-center gap-4 flex-wrap">
+                    <span>{parts[0]}</span>
+                    <div className="inline-flex items-center justify-center px-6 py-3 bg-indigo-50 border-2 border-indigo-300 border-dashed rounded-xl min-w-[120px]">
+                        <span className="text-indigo-600">?</span>
+                    </div>
+                    {parts[1] && <span>{parts[1]}</span>}
+                </div>
+            </div>
+        );
+    };
+
+    // Render vocabulary question as flashcard
+    const renderVocabQuestion = () => {
+        return (
+            <div className="bg-white rounded-2xl border-2 border-gray-200 p-12 mb-6 text-center shadow-lg">
+                <p className="text-sm text-gray-600 mb-4">What is the reading?</p>
+                <div className="text-8xl font-bold text-gray-900 mb-8">
+                    {currentItem.question}
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
             {/* Header */}
@@ -230,7 +287,7 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                             <X className="w-6 h-6 text-gray-600" />
                         </button>
                         <h2 className="text-lg font-semibold text-gray-900">{lesson.title}</h2>
-                        <div className="w-10" /> {/* Spacer for centering */}
+                        <div className="w-10" />
                     </div>
 
                     {/* Progress Bar */}
@@ -256,12 +313,27 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                         transition={{ duration: 0.3 }}
                     >
                         {/* Question Card */}
-                        <div className="bg-white rounded-2xl border-2 border-gray-200 p-12 mb-6 text-center shadow-lg">
-                            <p className="text-sm text-gray-600 mb-4">What is the reading?</p>
-                            <div className="text-8xl font-bold text-gray-900 mb-8">
-                                {currentItem.question}
-                            </div>
-                        </div>
+                        {currentItem.type === 'grammar' ? renderGrammarQuestion() : renderVocabQuestion()}
+
+                        {/* Hint Modal */}
+                        <AnimatePresence>
+                            {showHint && currentItem.hint && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-6 mb-6"
+                                >
+                                    <div className="flex items-start gap-3">
+                                        <Lightbulb className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-1" />
+                                        <div>
+                                            <p className="font-semibold text-yellow-900 mb-2">Grammar Tip</p>
+                                            <p className="text-sm text-yellow-800">{currentItem.hint}</p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                         {/* Answer Form */}
                         {!showFeedback ? (
@@ -271,7 +343,7 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                                     type="text"
                                     value={userAnswer}
                                     onChange={(e) => setUserAnswer(e.target.value)}
-                                    placeholder="Type in romaji (e.g., 'a', 'ka')"
+                                    placeholder={currentItem.type === 'grammar' ? "Type the particle (e.g., 'wa', 'wo')" : "Type in romaji (e.g., 'a', 'ka')"}
                                     autoFocus
                                     className="w-full px-6 py-4 text-2xl text-center border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                                 />
@@ -288,8 +360,8 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 className={`rounded-2xl p-8 border-2 ${isCorrect
-                                    ? 'bg-green-50 border-green-300'
-                                    : 'bg-red-50 border-red-300'
+                                        ? 'bg-green-50 border-green-300'
+                                        : 'bg-red-50 border-red-300'
                                     }`}
                             >
                                 <div className="flex items-center justify-center gap-3 mb-4">

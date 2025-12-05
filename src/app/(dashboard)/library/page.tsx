@@ -3,9 +3,11 @@ import { kanji, vocabulary, userProgress } from '../../../lib/db/schema';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { BookMarked } from 'lucide-react';
+import { BookMarked, Zap } from 'lucide-react';
 import LibraryTabs from './LibraryTabs';
 import { eq } from 'drizzle-orm';
+import Link from 'next/link';
+import { getDueReviews } from './actions';
 
 async function getUserId() {
     const cookieStore = await cookies();
@@ -67,16 +69,35 @@ export default async function LibraryPage() {
         srsStage: progressMap.get(`vocabulary-${v.id}`)?.srsStage ?? null,
     }));
 
+    // Get due  reviews count
+    const dueReviewsData = await getDueReviews();
+    const dueCount = 'items' in dueReviewsData ? dueReviewsData.items.length : 0;
+
     return (
         <div className="max-w-7xl mx-auto">
             <div className="mb-8">
-                <div className="flex items-center gap-3 mb-2">
-                    <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl">
-                        <BookMarked className="w-6 h-6 text-white" />
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl">
+                            <BookMarked className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900">Study Library</h1>
+                            <p className="text-gray-600">Browse and review kanji and vocabulary</p>
+                        </div>
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900">Study Library</h1>
+
+                    {/* Quick Review Button */}
+                    {dueCount > 0 && (
+                        <Link
+                            href="/review"
+                            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-semibold hover:from-orange-600 hover:to-red-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+                        >
+                            <Zap className="w-5 h-5" />
+                            Quick Review ({dueCount})
+                        </Link>
+                    )}
                 </div>
-                <p className="text-gray-600">Browse and review kanji and vocabulary</p>
             </div>
 
             <LibraryTabs
