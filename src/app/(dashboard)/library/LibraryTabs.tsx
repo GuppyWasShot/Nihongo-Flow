@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Search } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Search, Filter, X } from 'lucide-react';
 import Link from 'next/link';
 import type { Kanji, Vocabulary } from '../../../lib/db/schema';
 
@@ -9,6 +9,8 @@ interface LibraryTabsProps {
     kanji: (Kanji & { srsStage: number | null })[];
     vocabulary: (Vocabulary & { srsStage: number | null })[];
 }
+
+type SRSFilter = 'all' | 'new' | 'learning' | 'mastered';
 
 function getSRSBadge(srsStage: number | null) {
     if (srsStage === null) return null;
@@ -25,32 +27,55 @@ function getSRSBadge(srsStage: number | null) {
 export default function LibraryTabs({ kanji, vocabulary }: LibraryTabsProps) {
     const [activeTab, setActiveTab] = useState<'kanji' | 'vocabulary'>('kanji');
     const [searchQuery, setSearchQuery] = useState('');
+    const [srsFilter, setSrsFilter] = useState<SRSFilter>('all');
+    const [showFilters, setShowFilters] = useState(false);
 
-    // Filter kanji by search query
-    const filteredKanji = kanji.filter(k => {
-        const query = searchQuery.toLowerCase();
-        return (
-            k.character.includes(query) ||
-            k.meanings.some(m => m.toLowerCase().includes(query)) ||
-            k.onyomi?.some(o => o.toLowerCase().includes(query)) ||
-            k.kunyomi?.some(k => k.toLowerCase().includes(query))
-        );
-    });
+    // Filter function for SRS
+    const filterBySRS = <T extends { srsStage: number | null }>(items: T[]): T[] => {
+        if (srsFilter === 'all') return items;
+        return items.filter(item => {
+            if (srsFilter === 'new') return item.srsStage === null;
+            if (srsFilter === 'learning') return item.srsStage !== null && item.srsStage <= 4;
+            if (srsFilter === 'mastered') return item.srsStage !== null && item.srsStage >= 5;
+            return true;
+        });
+    };
 
-    // Filter vocabulary by search query
-    const filteredVocabulary = vocabulary.filter(v => {
-        const query = searchQuery.toLowerCase();
-        return (
-            v.writing.toLowerCase().includes(query) ||
-            v.reading.toLowerCase().includes(query) ||
-            v.meaning.toLowerCase().includes(query)
-        );
-    });
+    // Filter kanji by search query and SRS
+    const filteredKanji = useMemo(() => {
+        const bySearch = kanji.filter(k => {
+            if (!searchQuery) return true;
+            const query = searchQuery.toLowerCase();
+            return (
+                k.character.includes(query) ||
+                k.meanings.some(m => m.toLowerCase().includes(query)) ||
+                k.onyomi?.some(o => o.toLowerCase().includes(query)) ||
+                k.kunyomi?.some(k => k.toLowerCase().includes(query))
+            );
+        });
+        return filterBySRS(bySearch);
+    }, [kanji, searchQuery, srsFilter]);
+
+    // Filter vocabulary by search query and SRS
+    const filteredVocabulary = useMemo(() => {
+        const bySearch = vocabulary.filter(v => {
+            if (!searchQuery) return true;
+            const query = searchQuery.toLowerCase();
+            return (
+                v.writing.toLowerCase().includes(query) ||
+                v.reading.toLowerCase().includes(query) ||
+                v.meaning.toLowerCase().includes(query)
+            );
+        });
+        return filterBySRS(bySearch);
+    }, [vocabulary, searchQuery, srsFilter]);
+
+    const activeFilters = srsFilter !== 'all' ? 1 : 0;
 
     return (
         <div>
             {/* Tabs */}
-            <div className="flex items-center gap-6 mb-8 border-b border-slate-200 dark:border-slate-700">
+            <div className="flex items-center gap-6 mb-6 border-b border-slate-200 dark:border-slate-700">
                 <button
                     onClick={() => setActiveTab('kanji')}
                     className={`px-2 py-4 font-medium transition-all duration-200 ${activeTab === 'kanji'
@@ -58,7 +83,7 @@ export default function LibraryTabs({ kanji, vocabulary }: LibraryTabsProps) {
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                         }`}
                 >
-                    Kanji ({kanji.length})
+                    Kanji ({filteredKanji.length})
                 </button>
                 <button
                     onClick={() => setActiveTab('vocabulary')}
@@ -67,22 +92,77 @@ export default function LibraryTabs({ kanji, vocabulary }: LibraryTabsProps) {
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                         }`}
                 >
-                    Vocabulary ({vocabulary.length})
+                    Vocabulary ({filteredVocabulary.length})
                 </button>
             </div>
 
-            {/* Search Bar */}
-            <div className="mb-8">
-                <div className="relative">
-                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-slate-500" />
+            {/* Search & Filter Bar */}
+            <div className="flex gap-3 mb-4">
+                <div className="relative flex-1">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-slate-500" />
                     <input
                         type="text"
                         placeholder={`Search ${activeTab}...`}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-14 pr-5 py-4 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-transparent transition-all duration-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-lg"
+                        className="w-full pl-12 pr-5 py-3 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-transparent transition-all duration-200 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                     />
                 </div>
+                <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`flex items-center gap-2 px-4 py-3 border rounded-xl font-medium transition-all ${activeFilters > 0
+                            ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300'
+                            : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                        }`}
+                >
+                    <Filter className="w-4 h-4" />
+                    Filter
+                    {activeFilters > 0 && (
+                        <span className="flex items-center justify-center w-5 h-5 bg-emerald-500 text-white text-xs rounded-full">
+                            {activeFilters}
+                        </span>
+                    )}
+                </button>
+            </div>
+
+            {/* Filter Panel */}
+            {showFilters && (
+                <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-medium text-slate-900 dark:text-slate-100">Filters</h3>
+                        {activeFilters > 0 && (
+                            <button
+                                onClick={() => setSrsFilter('all')}
+                                className="text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                            >
+                                Clear all
+                            </button>
+                        )}
+                    </div>
+                    <div className="space-y-3">
+                        <div>
+                            <label className="text-sm text-slate-600 dark:text-slate-400 mb-2 block">SRS Status</label>
+                            <div className="flex flex-wrap gap-2">
+                                {(['all', 'new', 'learning', 'mastered'] as SRSFilter[]).map((filter) => (
+                                    <button
+                                        key={filter}
+                                        onClick={() => setSrsFilter(filter)}
+                                        className={`px-3 py-1.5 text-sm rounded-lg transition-all ${srsFilter === filter
+                                                ? 'bg-emerald-500 text-white'
+                                                : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 hover:border-emerald-300'
+                                            }`}
+                                    >
+                                        {filter === 'all' ? 'All' : filter.charAt(0).toUpperCase() + filter.slice(1)}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Content */}
+            <div className="mb-8">
             </div>
 
             {/* Content */}

@@ -38,10 +38,9 @@ export function ThemeToggle() {
         }
     };
 
+    // Always show Sun/Moon based on the actual resolved theme (what the user sees)
+    // This is clearer than showing a Monitor icon for system mode
     const getIcon = () => {
-        if (theme === 'system') {
-            return <Monitor className="w-5 h-5" />;
-        }
         return resolvedTheme === 'dark' ? (
             <Moon className="w-5 h-5" />
         ) : (
@@ -50,7 +49,7 @@ export function ThemeToggle() {
     };
 
     const getLabel = () => {
-        if (theme === 'system') return 'System theme';
+        if (theme === 'system') return 'System theme (click to switch)';
         return theme === 'dark' ? 'Dark mode' : 'Light mode';
     };
 

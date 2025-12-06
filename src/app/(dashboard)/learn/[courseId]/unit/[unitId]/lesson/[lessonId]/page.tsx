@@ -26,12 +26,8 @@ async function getUserId() {
                 get(name: string) {
                     return cookieStore.get(name)?.value;
                 },
-                set(name: string, value: string, options: any) {
-                    cookieStore.set({ name, value, ...options });
-                },
-                remove(name: string, options: any) {
-                    cookieStore.set({ name, value: '', ...options });
-                },
+                set() { },
+                remove() { },
             },
         }
     );
@@ -103,24 +99,24 @@ export default async function LessonPage({ params }: LessonPageProps) {
                 <div className="mb-6">
                     <Link
                         href={`/learn/${courseId}`}
-                        className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium"
+                        className="inline-flex items-center gap-2 text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium transition-colors"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         Back to course
                     </Link>
                 </div>
 
-                <div className="bg-white rounded-2xl border-2 border-gray-200 p-8 text-center">
+                <div className="bg-white dark:bg-slate-800 rounded-2xl border-2 border-slate-200 dark:border-slate-700 p-8 text-center transition-colors">
                     <div className="flex justify-center mb-6">
-                        <div className="flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full">
-                            <Lock className="w-10 h-10 text-gray-400" />
+                        <div className="flex items-center justify-center w-20 h-20 bg-slate-100 dark:bg-slate-700 rounded-full">
+                            <Lock className="w-10 h-10 text-slate-400 dark:text-slate-500" />
                         </div>
                     </div>
 
-                    <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-4">
                         Lesson Locked
                     </h1>
-                    <p className="text-gray-600 mb-8">
+                    <p className="text-slate-600 dark:text-slate-400 mb-8">
                         You need to master these vocabulary words before starting this lesson:
                     </p>
 
@@ -128,13 +124,13 @@ export default async function LessonPage({ params }: LessonPageProps) {
                         {unmetDependencies.map((vocab: any) => (
                             <div
                                 key={vocab.id}
-                                className="bg-gray-50 rounded-xl p-4 border border-gray-200 flex items-center justify-between"
+                                className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 border border-slate-200 dark:border-slate-600 flex items-center justify-between"
                             >
                                 <div className="text-left">
-                                    <p className="text-xl font-bold text-gray-900">{vocab.writing}</p>
-                                    <p className="text-sm text-gray-600">{vocab.reading} • {vocab.meaning}</p>
+                                    <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{vocab.writing}</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400">{vocab.reading} • {vocab.meaning}</p>
                                 </div>
-                                <div className="text-xs px-3 py-1 bg-orange-100 text-orange-700 rounded-full font-medium">
+                                <div className="text-xs px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded-full font-medium">
                                     Not mastered
                                 </div>
                             </div>
@@ -143,7 +139,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
                     <Link
                         href="/review"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-teal-600 transition-all duration-200 shadow-lg hover:shadow-xl"
                     >
                         Go to Vocabulary Drill
                         <ArrowRight className="w-4 h-4" />

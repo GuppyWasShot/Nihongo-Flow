@@ -88,11 +88,11 @@
 }
 
 .dark {
-  /* Dark Background Colors */
-  --background: #0f172a;
+  /* Dark Background Colors - truly dark */
+  --background: #030712;
+  /* gray-950 (near black) */
+  --background-secondary: #0f172a;
   /* slate-900 */
-  --background-secondary: #1e293b;
-  /* slate-800 */
 
   /* Dark Text Colors */
   --foreground: #f1f5f9;
@@ -103,10 +103,10 @@
   /* slate-400 */
 
   /* Dark Card Surfaces */
-  --card-background: #1e293b;
+  --card-background: #0f172a;
+  /* slate-900 */
+  --card-border: #1e293b;
   /* slate-800 */
-  --card-border: #334155;
-  /* slate-700 */
   --card-border-hover: #34d399;
   /* emerald-400 */
 

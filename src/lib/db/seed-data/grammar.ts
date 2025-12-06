@@ -420,4 +420,122 @@ export const n5GrammarData = [
             { japanese: '母が本をくれました。', reading: 'ははがほんをくれました。', english: 'My mother gave me a book.' },
         ],
     },
+
+    // Additional N5 Grammar Patterns
+    {
+        pattern: 'なければなりません / ないといけません',
+        meaning: 'Must / have to',
+        formation: 'Verb ない-form (remove ない) + なければなりません',
+        explanation: 'Expresses obligation or necessity.',
+        examples: [
+            { japanese: '宿題をしなければなりません。', reading: 'しゅくだいをしなければなりません。', english: 'I have to do my homework.' },
+            { japanese: '明日早く起きないといけません。', reading: 'あしたはやくおきないといけません。', english: 'I have to wake up early tomorrow.' },
+        ],
+    },
+    {
+        pattern: 'なくてもいいです',
+        meaning: 'Do not have to',
+        formation: 'Verb ない-form (remove ない) + なくてもいいです',
+        explanation: 'Expresses that something is not necessary.',
+        examples: [
+            { japanese: '今日は来なくてもいいです。', reading: 'きょうはこなくてもいいです。', english: 'You do not have to come today.' },
+        ],
+    },
+    {
+        pattern: 'ことができます',
+        meaning: 'Can / able to',
+        formation: 'Verb dictionary form + ことができます',
+        explanation: 'Expresses ability or possibility to do something.',
+        examples: [
+            { japanese: '日本語を話すことができます。', reading: 'にほんごをはなすことができます。', english: 'I can speak Japanese.' },
+            { japanese: 'ピアノを弾くことができますか？', reading: 'ピアノをひくことができますか？', english: 'Can you play the piano?' },
+        ],
+    },
+    {
+        pattern: 'ことがあります',
+        meaning: 'Have done / have experienced',
+        formation: 'Verb た-form + ことがあります',
+        explanation: 'Expresses past experience.',
+        examples: [
+            { japanese: '富士山に登ったことがあります。', reading: 'ふじさんにのぼったことがあります。', english: 'I have climbed Mt. Fuji.' },
+            { japanese: '日本に行ったことがありますか？', reading: 'にほんにいったことがありますか？', english: 'Have you ever been to Japan?' },
+        ],
+    },
+    {
+        pattern: 'つもりです',
+        meaning: 'Plan to / intend to',
+        formation: 'Verb dictionary form + つもりです',
+        explanation: 'Expresses intention or a plan to do something.',
+        examples: [
+            { japanese: '来年日本に行くつもりです。', reading: 'らいねんにほんにいくつもりです。', english: 'I plan to go to Japan next year.' },
+        ],
+    },
+    {
+        pattern: 'ましょう',
+        meaning: "Let's / shall we",
+        formation: 'Verb stem + ましょう',
+        explanation: 'Used to make suggestions or proposals.',
+        examples: [
+            { japanese: '映画を見ましょう。', reading: 'えいがをみましょう。', english: "Let's watch a movie." },
+            { japanese: '一緒に行きましょうか？', reading: 'いっしょにいきましょうか？', english: 'Shall we go together?' },
+        ],
+    },
+    {
+        pattern: 'ましょうか',
+        meaning: 'Shall I...? (offering help)',
+        formation: 'Verb stem + ましょうか',
+        explanation: 'Used to offer to do something for someone.',
+        examples: [
+            { japanese: '窓を開けましょうか？', reading: 'まどをあけましょうか？', english: 'Shall I open the window?' },
+            { japanese: '手伝いましょうか？', reading: 'てつだいましょうか？', english: 'Shall I help you?' },
+        ],
+    },
+    {
+        pattern: 'ながら',
+        meaning: 'While doing',
+        formation: 'Verb stem + ながら',
+        explanation: 'Indicates two actions happening simultaneously.',
+        examples: [
+            { japanese: '音楽を聞きながら勉強します。', reading: 'おんがくをききながらべんきょうします。', english: 'I study while listening to music.' },
+        ],
+    },
+    {
+        pattern: 'たり...たりする',
+        meaning: 'Do things like...and...',
+        formation: 'Verb た-form + り + Verb た-form + り + する',
+        explanation: 'Lists representative examples of actions.',
+        examples: [
+            { japanese: '週末は映画を見たり、買い物をしたりします。', reading: 'しゅうまつはえいがをみたり、かいものをしたりします。', english: 'On weekends, I do things like watch movies and go shopping.' },
+        ],
+    },
+    {
+        pattern: 'とき',
+        meaning: 'When / at the time of',
+        formation: 'Verb/Adjective + とき',
+        explanation: 'Indicates the time when something happens.',
+        examples: [
+            { japanese: '日本に行くとき、パスポートが必要です。', reading: 'にほんにいくとき、パスポートがひつようです。', english: 'When you go to Japan, you need a passport.' },
+            { japanese: '子供のとき、よく公園で遊びました。', reading: 'こどものとき、よくこうえんであそびました。', english: 'When I was a child, I often played in the park.' },
+        ],
+    },
+    {
+        pattern: 'すぎます',
+        meaning: 'Too much / excessively',
+        formation: 'Verb stem / Adj stem + すぎます',
+        explanation: 'Indicates excess or doing something too much.',
+        examples: [
+            { japanese: '昨日食べすぎました。', reading: 'きのうたべすぎました。', english: 'I ate too much yesterday.' },
+            { japanese: 'このかばんは高すぎます。', reading: 'このかばんはたかすぎます。', english: 'This bag is too expensive.' },
+        ],
+    },
+    {
+        pattern: 'やすい / にくい',
+        meaning: 'Easy to / hard to',
+        formation: 'Verb stem + やすい/にくい',
+        explanation: 'やすい means easy to do; にくい means hard to do.',
+        examples: [
+            { japanese: 'この本は読みやすいです。', reading: 'このほんはよみやすいです。', english: 'This book is easy to read.' },
+            { japanese: 'この漢字は書きにくいです。', reading: 'このかんじはかきにくいです。', english: 'This kanji is hard to write.' },
+        ],
+    },
 ];

@@ -43,12 +43,12 @@ export default async function DashboardLayout({
     const user = await getUser();
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50/30 dark:from-slate-950 dark:to-slate-900 transition-colors duration-200">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50/30 dark:from-gray-950 dark:to-slate-950 transition-colors duration-200">
             {/* Sidebar - Desktop */}
             <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-                <div className="flex flex-col flex-grow bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 transition-colors duration-200">
+                <div className="flex flex-col flex-grow bg-white dark:bg-gray-950 border-r border-slate-200/80 dark:border-slate-800/50 transition-colors duration-200">
                     {/* Logo */}
-                    <div className="flex items-center justify-between px-6 py-6 border-b border-slate-200/80 dark:border-slate-800">
+                    <div className="flex items-center justify-between px-6 py-6 border-b border-slate-200/80 dark:border-slate-800/50">
                         <Link href="/learn" className="flex items-center gap-3">
                             <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl shadow-sm">
                                 <span className="text-2xl">日</span>

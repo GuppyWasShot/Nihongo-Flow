@@ -24,12 +24,8 @@ async function getUserId() {
                 get(name: string) {
                     return cookieStore.get(name)?.value;
                 },
-                set(name: string, value: string, options: any) {
-                    cookieStore.set({ name, value, ...options });
-                },
-                remove(name: string, options: any) {
-                    cookieStore.set({ name, value: '', ...options });
-                },
+                set() { },
+                remove() { },
             },
         }
     );
@@ -133,10 +129,10 @@ export default async function CoursePage({ params }: CoursePageProps) {
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                     <div className={`flex items-center justify-center w-12 h-12 rounded-xl ${unit.isComplete
+                                        ? 'bg-emerald-100 dark:bg-emerald-900/30'
+                                        : unit.isUnlocked
                                             ? 'bg-emerald-100 dark:bg-emerald-900/30'
-                                            : unit.isUnlocked
-                                                ? 'bg-emerald-100 dark:bg-emerald-900/30'
-                                                : 'bg-slate-100 dark:bg-slate-700'
+                                            : 'bg-slate-100 dark:bg-slate-700'
                                         }`}>
                                         {unit.isComplete ? (
                                             <CheckCircle className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
@@ -170,14 +166,14 @@ export default async function CoursePage({ params }: CoursePageProps) {
                                             key={lesson.id}
                                             href={isLessonUnlocked ? `/learn/${courseId}/unit/${unit.id}/lesson/${lesson.id}` : '#'}
                                             className={`flex items-center justify-between px-6 py-5 transition-colors group ${isLessonUnlocked
-                                                    ? 'hover:bg-emerald-50 dark:hover:bg-emerald-900/10 cursor-pointer'
-                                                    : 'opacity-60 cursor-not-allowed'
+                                                ? 'hover:bg-emerald-50 dark:hover:bg-emerald-900/10 cursor-pointer'
+                                                : 'opacity-60 cursor-not-allowed'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-4">
                                                 <div className={`flex items-center justify-center w-10 h-10 rounded-xl ${isLessonUnlocked
-                                                        ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400'
-                                                        : 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500'
+                                                    ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400'
+                                                    : 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500'
                                                     }`}>
                                                     {isLessonUnlocked ? (
                                                         <Play className="w-4 h-4" />
@@ -187,8 +183,8 @@ export default async function CoursePage({ params }: CoursePageProps) {
                                                 </div>
                                                 <div>
                                                     <p className={`font-medium ${isLessonUnlocked
-                                                            ? 'text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
-                                                            : 'text-slate-500 dark:text-slate-400'
+                                                        ? 'text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
+                                                        : 'text-slate-500 dark:text-slate-400'
                                                         }`}>
                                                         {lesson.title}
                                                     </p>
