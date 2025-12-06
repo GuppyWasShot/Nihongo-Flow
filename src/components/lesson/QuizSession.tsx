@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ArrowRight, CheckCircle2, XCircle, Trophy, Lightbulb } from 'lucide-react';
+import { X, ArrowRight, CheckCircle2, XCircle, Trophy, Lightbulb, Settings, RotateCcw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import * as wanakana from 'wanakana';
 import { completeLesson } from '../../app/(dashboard)/learn/[courseId]/unit/[unitId]/lesson/[lessonId]/actions';
+import { FuriganaToggle, useFurigana } from './FuriganaToggle';
 
 interface QuizSessionProps {
     lesson: {
@@ -17,6 +18,10 @@ interface QuizSessionProps {
             characters?: string[];
             romaji?: string[];
             sentences?: Array<{ q: string; a: string; hint?: string }>;
+            grammarPoint?: string;
+            explanation?: string;
+            questionType?: 'fill_blank' | 'word_bank' | 'multiple_choice';
+            questions?: any[];
         };
     };
     courseId: string;
@@ -27,14 +32,47 @@ interface QuizItem {
     id: number;
     question: string;
     answer: string;
-    type: 'vocabulary' | 'kanji' | 'grammar';
+    type: 'vocabulary' | 'kanji' | 'grammar' | 'fill_blank' | 'word_bank' | 'multiple_choice';
     hint?: string;
+    options?: string[];
+    correctAnswer?: number;
+    sentence?: string;
+    sentenceReading?: string;
+    sentenceEnglish?: string;
+    // Word bank specific
+    words?: string[];
+    wordsReading?: string[];
+    correctOrder?: number[];
+    targetSentence?: string;
+    targetReading?: string;
+    targetEnglish?: string;
 }
 
 interface QuizResult {
     itemType: 'vocabulary' | 'kanji';
     itemId: number;
     correct: boolean;
+}
+
+/**
+ * Furigana text component - renders text with optional reading
+ */
+function FuriganaText({ text, reading }: { text: string; reading?: string }) {
+    const { showFurigana } = useFurigana();
+
+    if (!showFurigana || !reading) {
+        return <span>{text}</span>;
+    }
+
+    // Simple furigana rendering using ruby tags
+    return (
+        <ruby className="ruby-text">
+            {text}
+            <rp>(</rp>
+            <rt className="text-sm text-slate-500 dark:text-slate-400">{reading}</rt>
+            <rp>)</rp>
+        </ruby>
+    );
 }
 
 export default function QuizSession({ lesson, courseId, unitId }: QuizSessionProps) {
@@ -52,19 +90,76 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [failureCount, setFailureCount] = useState<Map<number, number>>(new Map());
     const [showHint, setShowHint] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
+
+    // Word bank state
+    const [selectedWords, setSelectedWords] = useState<number[]>([]);
+
+    // Multiple choice state
+    const [selectedOption, setSelectedOption] = useState<number | null>(null);
 
     // Initialize quiz items from lesson content
     useEffect(() => {
-        if (lesson.type === 'vocab_drill' && lesson.content.characters && lesson.content.romaji) {
-            const items: QuizItem[] = lesson.content.characters.map((char, idx) => ({
+        const content = lesson.content;
+
+        // Handle new question types
+        if (lesson.type === 'grammar' && content.questionType && content.questions) {
+            const items: QuizItem[] = content.questions.map((q: any, idx: number) => {
+                if (content.questionType === 'fill_blank') {
+                    return {
+                        id: idx + 1,
+                        question: q.sentence,
+                        answer: q.answer,
+                        type: 'fill_blank' as const,
+                        hint: q.hint,
+                        sentence: q.sentence,
+                        sentenceReading: q.sentenceReading,
+                        sentenceEnglish: q.sentenceEnglish,
+                    };
+                } else if (content.questionType === 'word_bank') {
+                    return {
+                        id: idx + 1,
+                        question: q.targetSentence,
+                        answer: q.targetSentence,
+                        type: 'word_bank' as const,
+                        words: q.words,
+                        wordsReading: q.wordsReading,
+                        correctOrder: q.correctOrder,
+                        targetSentence: q.targetSentence,
+                        targetReading: q.targetReading,
+                        targetEnglish: q.targetEnglish,
+                    };
+                } else if (content.questionType === 'multiple_choice') {
+                    return {
+                        id: idx + 1,
+                        question: q.sentence,
+                        answer: q.options[q.correctAnswer],
+                        type: 'multiple_choice' as const,
+                        options: q.options,
+                        correctAnswer: q.correctAnswer,
+                        sentence: q.sentence,
+                        sentenceReading: q.sentenceReading,
+                        sentenceEnglish: q.sentenceEnglish,
+                        hint: q.explanation,
+                    };
+                }
+                return null;
+            }).filter(Boolean) as QuizItem[];
+            setQuizItems(items);
+        }
+        // Legacy vocab_drill format
+        else if (lesson.type === 'vocab_drill' && content.characters && content.romaji) {
+            const items: QuizItem[] = content.characters.map((char, idx) => ({
                 id: idx + 1,
                 question: char,
-                answer: lesson.content.romaji![idx],
+                answer: content.romaji![idx],
                 type: 'vocabulary' as const,
             }));
             setQuizItems(items);
-        } else if (lesson.type === 'grammar' && lesson.content.sentences) {
-            const items: QuizItem[] = lesson.content.sentences.map((sentence, idx) => ({
+        }
+        // Legacy grammar_drill format
+        else if (lesson.type === 'grammar_drill' && content.sentences) {
+            const items: QuizItem[] = content.sentences.map((sentence, idx) => ({
                 id: idx + 1,
                 question: sentence.q,
                 answer: sentence.a,
@@ -75,9 +170,9 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
         }
     }, [lesson]);
 
-    // Bind wanakana to input
+    // Bind wanakana to input for hiragana conversion
     useEffect(() => {
-        if (inputRef.current) {
+        if (inputRef.current && currentItem?.type !== 'multiple_choice' && currentItem?.type !== 'word_bank') {
             wanakana.bind(inputRef.current);
         }
         return () => {
@@ -88,17 +183,36 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
     }, [currentIndex]);
 
     const currentItem = quizItems[currentIndex];
-    const progress = ((currentIndex + 1) / quizItems.length) * 100;
+    const progress = quizItems.length > 0 ? ((currentIndex + 1) / quizItems.length) * 100 : 0;
+
+    // Reset state when moving to next question
+    const resetQuestionState = useCallback(() => {
+        setSelectedWords([]);
+        setSelectedOption(null);
+        setUserAnswer('');
+        setShowFeedback(false);
+        setShowHint(false);
+    }, []);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-
         if (!currentItem || showFeedback) return;
 
-        // Convert user answer to hiragana for comparison
-        const normalizedAnswer = wanakana.toHiragana(userAnswer.trim().toLowerCase());
-        const normalizedCorrect = wanakana.toHiragana(currentItem.answer.trim().toLowerCase());
-        const correct = normalizedAnswer === normalizedCorrect;
+        let correct = false;
+
+        if (currentItem.type === 'word_bank') {
+            // Check if word order matches
+            const userOrder = selectedWords;
+            const correctOrder = currentItem.correctOrder || [];
+            correct = JSON.stringify(userOrder) === JSON.stringify(correctOrder);
+        } else if (currentItem.type === 'multiple_choice') {
+            correct = selectedOption === currentItem.correctAnswer;
+        } else {
+            // Fill-blank or legacy types
+            const normalizedAnswer = wanakana.toHiragana(userAnswer.trim().toLowerCase());
+            const normalizedCorrect = wanakana.toHiragana(currentItem.answer.trim().toLowerCase());
+            correct = normalizedAnswer === normalizedCorrect;
+        }
 
         setIsCorrect(correct);
         setShowFeedback(true);
@@ -109,40 +223,36 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
             const newFailures = currentFailures + 1;
             setFailureCount(new Map(failureCount.set(currentItem.id, newFailures)));
 
-            // Show hint after 3 failures on grammar questions
-            if (newFailures >= 3 && currentItem.type === 'grammar' && currentItem.hint) {
+            if (newFailures >= 3 && currentItem.hint) {
                 setShowHint(true);
             }
         }
 
         // Track result
         const result: QuizResult = {
-            itemType: currentItem.type === 'grammar' ? 'vocabulary' : currentItem.type,
+            itemType: currentItem.type === 'grammar' || currentItem.type === 'fill_blank' ||
+                currentItem.type === 'word_bank' || currentItem.type === 'multiple_choice'
+                ? 'vocabulary' : currentItem.type as 'vocabulary' | 'kanji',
             itemId: currentItem.id,
             correct,
         };
         setResults(prev => [...prev, result]);
 
-        // If incorrect, queue for retry at the end
+        // If incorrect, queue for retry
         if (!correct) {
             setIncorrectQueue(prev => [...prev, currentItem]);
         }
     };
 
     const handleNext = () => {
-        setShowFeedback(false);
-        setShowHint(false);
-        setUserAnswer('');
+        resetQuestionState();
 
-        // Check if we're at the end of the main quiz
         if (currentIndex + 1 >= quizItems.length) {
-            // If there are items in incorrect queue, add them back
             if (incorrectQueue.length > 0) {
                 setQuizItems(prev => [...prev, ...incorrectQueue]);
                 setIncorrectQueue([]);
                 setCurrentIndex(currentIndex + 1);
             } else {
-                // Quiz complete!
                 setIsComplete(true);
             }
         } else {
@@ -175,7 +285,27 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
         }
     };
 
-    // Completion screen
+    // Word bank handlers
+    const handleWordClick = (index: number) => {
+        if (showFeedback) return;
+        if (selectedWords.includes(index)) {
+            setSelectedWords(selectedWords.filter(i => i !== index));
+        } else {
+            setSelectedWords([...selectedWords, index]);
+        }
+    };
+
+    const handleWordBankReset = () => {
+        setSelectedWords([]);
+    };
+
+    // Multiple choice handler
+    const handleOptionSelect = (index: number) => {
+        if (showFeedback) return;
+        setSelectedOption(index);
+    };
+
+    // ============ RENDER COMPLETION SCREEN ============
     if (isComplete) {
         const correctCount = results.filter(r => r.correct).length;
         const accuracy = Math.round((correctCount / results.length) * 100);
@@ -243,7 +373,153 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
         return <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-900 dark:text-slate-100">Loading...</div>;
     }
 
-    // Render grammar question with sentence completion
+    // ============ RENDER FILL-IN-THE-BLANK QUESTION ============
+    const renderFillBlankQuestion = () => {
+        const parts = currentItem.sentence?.split('{_}') || currentItem.question.split('_');
+
+        return (
+            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700/50 p-10 mb-8 shadow-sm">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 text-center">Fill in the blank</p>
+
+                {/* Sentence with blank */}
+                <div className="text-3xl font-medium text-slate-900 dark:text-slate-100 mb-6 flex items-center justify-center gap-2 flex-wrap text-center leading-relaxed">
+                    <FuriganaText text={parts[0]} reading={currentItem.sentenceReading?.split('{_}')[0]} />
+                    <span className="inline-flex items-center justify-center px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-300 dark:border-emerald-600 border-dashed rounded-xl min-w-[80px]">
+                        <span className="text-emerald-600 dark:text-emerald-400 text-2xl">?</span>
+                    </span>
+                    {parts[1] && <FuriganaText text={parts[1]} reading={currentItem.sentenceReading?.split('{_}')[1]} />}
+                </div>
+
+                {/* English translation */}
+                {currentItem.sentenceEnglish && (
+                    <p className="text-slate-500 dark:text-slate-400 text-center">{currentItem.sentenceEnglish}</p>
+                )}
+            </div>
+        );
+    };
+
+    // ============ RENDER WORD BANK QUESTION ============
+    const renderWordBankQuestion = () => {
+        const words = currentItem.words || [];
+        const wordsReading = currentItem.wordsReading || [];
+
+        // Build the sentence from selected words
+        const builtSentence = selectedWords.map(i => words[i]).join('');
+
+        return (
+            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700/50 p-10 mb-8 shadow-sm">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 text-center">Build the sentence</p>
+
+                {/* Target translation */}
+                <p className="text-lg text-slate-600 dark:text-slate-300 text-center mb-6">
+                    &ldquo;{currentItem.targetEnglish}&rdquo;
+                </p>
+
+                {/* Built sentence area */}
+                <div className="min-h-[80px] bg-slate-50 dark:bg-slate-700/50 rounded-2xl p-4 mb-6 flex items-center justify-center flex-wrap gap-2 border-2 border-dashed border-slate-200 dark:border-slate-600">
+                    {selectedWords.length === 0 ? (
+                        <span className="text-slate-400 dark:text-slate-500">Tap words below to build the sentence</span>
+                    ) : (
+                        <span className="text-2xl font-medium text-slate-900 dark:text-slate-100">{builtSentence}</span>
+                    )}
+                </div>
+
+                {/* Word pills */}
+                <div className="flex flex-wrap justify-center gap-3 mb-4">
+                    {words.map((word, idx) => {
+                        const isSelected = selectedWords.includes(idx);
+                        return (
+                            <button
+                                key={idx}
+                                onClick={() => handleWordClick(idx)}
+                                disabled={showFeedback}
+                                className={`
+                                    px-5 py-3 rounded-xl text-lg font-medium transition-all duration-200
+                                    ${isSelected
+                                        ? 'bg-emerald-500 text-white scale-95 opacity-50'
+                                        : 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:scale-105 active:scale-95'
+                                    }
+                                    disabled:cursor-not-allowed
+                                `}
+                            >
+                                <FuriganaText text={word} reading={wordsReading[idx]} />
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Reset button */}
+                {selectedWords.length > 0 && !showFeedback && (
+                    <div className="flex justify-center">
+                        <button
+                            onClick={handleWordBankReset}
+                            className="flex items-center gap-2 px-4 py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                        >
+                            <RotateCcw className="w-4 h-4" />
+                            Reset
+                        </button>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    // ============ RENDER MULTIPLE CHOICE QUESTION ============
+    const renderMultipleChoiceQuestion = () => {
+        const parts = currentItem.sentence?.split('___') || [];
+        const options = currentItem.options || [];
+
+        return (
+            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700/50 p-10 mb-8 shadow-sm">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 text-center">Choose the correct particle</p>
+
+                {/* Sentence */}
+                <div className="text-3xl font-medium text-slate-900 dark:text-slate-100 mb-6 text-center">
+                    <FuriganaText text={parts[0]} reading={currentItem.sentenceReading?.split('___')[0]} />
+                    <span className="inline-block mx-2 px-4 py-1 bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-300 dark:border-emerald-600 rounded-lg">
+                        {selectedOption !== null ? options[selectedOption] : '___'}
+                    </span>
+                    {parts[1] && <FuriganaText text={parts[1]} reading={currentItem.sentenceReading?.split('___')[1]} />}
+                </div>
+
+                {/* English translation */}
+                {currentItem.sentenceEnglish && (
+                    <p className="text-slate-500 dark:text-slate-400 text-center mb-8">{currentItem.sentenceEnglish}</p>
+                )}
+
+                {/* Options */}
+                <div className="grid grid-cols-2 gap-4">
+                    {options.map((option, idx) => (
+                        <button
+                            key={idx}
+                            onClick={() => handleOptionSelect(idx)}
+                            disabled={showFeedback}
+                            className={`
+                                px-6 py-4 rounded-2xl text-xl font-medium transition-all duration-200
+                                ${selectedOption === idx
+                                    ? 'bg-emerald-500 text-white ring-4 ring-emerald-200 dark:ring-emerald-800'
+                                    : 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-emerald-100 dark:hover:bg-emerald-900/30'
+                                }
+                                ${showFeedback && idx === currentItem.correctAnswer
+                                    ? 'bg-emerald-500 text-white'
+                                    : ''
+                                }
+                                ${showFeedback && selectedOption === idx && idx !== currentItem.correctAnswer
+                                    ? 'bg-rose-500 text-white'
+                                    : ''
+                                }
+                                disabled:cursor-not-allowed
+                            `}
+                        >
+                            {option}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
+    // ============ RENDER LEGACY GRAMMAR QUESTION ============
     const renderGrammarQuestion = () => {
         const parts = currentItem.question.split('_');
 
@@ -261,7 +537,7 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
         );
     };
 
-    // Render vocabulary question as flashcard
+    // ============ RENDER VOCABULARY QUESTION ============
     const renderVocabQuestion = () => {
         return (
             <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700/50 p-14 mb-8 text-center shadow-sm">
@@ -271,6 +547,33 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                 </div>
             </div>
         );
+    };
+
+    // Determine which renderer to use
+    const renderQuestion = () => {
+        switch (currentItem.type) {
+            case 'fill_blank':
+                return renderFillBlankQuestion();
+            case 'word_bank':
+                return renderWordBankQuestion();
+            case 'multiple_choice':
+                return renderMultipleChoiceQuestion();
+            case 'grammar':
+                return renderGrammarQuestion();
+            default:
+                return renderVocabQuestion();
+        }
+    };
+
+    // Check if submit should be enabled
+    const canSubmit = () => {
+        if (currentItem.type === 'word_bank') {
+            return selectedWords.length > 0;
+        }
+        if (currentItem.type === 'multiple_choice') {
+            return selectedOption !== null;
+        }
+        return userAnswer.trim().length > 0;
     };
 
     return (
@@ -286,8 +589,14 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                         >
                             <X className="w-6 h-6 text-slate-500 dark:text-slate-400" />
                         </button>
+
                         <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">{lesson.title}</h2>
-                        <div className="w-10" />
+
+                        {/* Furigana Toggle - hide for kanji practice */}
+                        {lesson.type !== 'kanji_practice' && (
+                            <FuriganaToggle lessonType={lesson.type} jlptLevel="N5" />
+                        )}
+                        {lesson.type === 'kanji_practice' && <div className="w-10" />}
                     </div>
 
                     {/* Progress Bar */}
@@ -313,7 +622,7 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                         transition={{ duration: 0.3 }}
                     >
                         {/* Question Card */}
-                        {currentItem.type === 'grammar' ? renderGrammarQuestion() : renderVocabQuestion()}
+                        {renderQuestion()}
 
                         {/* Hint Modal */}
                         <AnimatePresence>
@@ -327,7 +636,7 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                                     <div className="flex items-start gap-3">
                                         <Lightbulb className="w-6 h-6 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-1" />
                                         <div>
-                                            <p className="font-medium text-amber-900 dark:text-amber-200 mb-2">Grammar Tip</p>
+                                            <p className="font-medium text-amber-900 dark:text-amber-200 mb-2">Hint</p>
                                             <p className="text-sm text-amber-800 dark:text-amber-300 leading-relaxed">{currentItem.hint}</p>
                                         </div>
                                     </div>
@@ -335,21 +644,24 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                             )}
                         </AnimatePresence>
 
-                        {/* Answer Form */}
+                        {/* Answer Form / Feedback */}
                         {!showFeedback ? (
                             <form onSubmit={handleSubmit} className="space-y-5">
-                                <input
-                                    ref={inputRef}
-                                    type="text"
-                                    value={userAnswer}
-                                    onChange={(e) => setUserAnswer(e.target.value)}
-                                    placeholder={currentItem.type === 'grammar' ? "Type the particle (e.g., 'wa', 'wo')" : "Type in romaji (e.g., 'a', 'ka')"}
-                                    autoFocus
-                                    className="w-full px-8 py-5 text-3xl text-center border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-transparent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
-                                />
+                                {/* Show input for fill_blank and legacy types */}
+                                {currentItem.type !== 'word_bank' && currentItem.type !== 'multiple_choice' && (
+                                    <input
+                                        ref={inputRef}
+                                        type="text"
+                                        value={userAnswer}
+                                        onChange={(e) => setUserAnswer(e.target.value)}
+                                        placeholder={currentItem.type === 'fill_blank' ? "Type the particle" : "Type in romaji"}
+                                        autoFocus
+                                        className="w-full px-8 py-5 text-3xl text-center border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-transparent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                                    />
+                                )}
                                 <button
                                     type="submit"
-                                    disabled={!userAnswer.trim()}
+                                    disabled={!canSubmit()}
                                     className="w-full px-8 py-5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xl font-medium rounded-2xl hover:from-emerald-600 hover:to-teal-600 transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
                                 >
                                     Check Answer
@@ -380,7 +692,11 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
 
                                 {!isCorrect && (
                                     <p className="text-lg text-slate-700 dark:text-slate-300 mb-6 text-center">
-                                        The correct answer is: <span className="font-semibold">{currentItem.answer}</span>
+                                        {currentItem.type === 'word_bank' ? (
+                                            <>Correct sentence: <span className="font-semibold">{currentItem.targetSentence}</span></>
+                                        ) : (
+                                            <>The correct answer is: <span className="font-semibold">{currentItem.answer}</span></>
+                                        )}
                                     </p>
                                 )}
 

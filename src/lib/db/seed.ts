@@ -3,10 +3,10 @@
  * 
  * Populates the database with complete N5 curriculum including:
  * - Hiragana and Katakana (92 characters)
- * - 103 N5 Kanji with mnemonics
- * - 200+ Vocabulary words
- * - 50+ Grammar patterns
- * - 10 Complete units with lessons
+ * - N5 Kanji with mnemonics
+ * - Vocabulary words
+ * - Grammar patterns
+ * - Complete units with lessons (new question types)
  * - Sample mock exam
  * 
  * Run with: npm run seed
@@ -29,6 +29,240 @@ import { hiraganaData, katakanaData } from './seed-data/kana';
 import { n5KanjiData } from './seed-data/kanji';
 import { n5GrammarData } from './seed-data/grammar';
 import { n5VocabularyData } from './seed-data/vocabulary';
+
+// ============ FOCUSED UNIT 1 DATA ============
+
+// 6 Core Kanji for Unit 1 (Atoms)
+const unit1Kanji = [
+    {
+        character: '人',
+        meanings: ['person', 'people'],
+        onyomi: ['ジン', 'ニン'],
+        kunyomi: ['ひと'],
+        strokeCount: 2,
+        mnemonic: 'A person walking on two legs - the strokes look like legs in motion.',
+        exampleWords: [
+            { word: '日本人', reading: 'にほんじん', meaning: 'Japanese person' },
+            { word: '一人', reading: 'ひとり', meaning: 'one person; alone' },
+        ],
+    },
+    {
+        character: '日',
+        meanings: ['sun', 'day'],
+        onyomi: ['ニチ', 'ジツ'],
+        kunyomi: ['ひ', 'か'],
+        strokeCount: 4,
+        mnemonic: 'Picture a window with the sun shining through it.',
+        exampleWords: [
+            { word: '今日', reading: 'きょう', meaning: 'today' },
+            { word: '日曜日', reading: 'にちようび', meaning: 'Sunday' },
+        ],
+    },
+    {
+        character: '本',
+        meanings: ['book', 'origin', 'base'],
+        onyomi: ['ホン'],
+        kunyomi: ['もと'],
+        strokeCount: 5,
+        mnemonic: 'A tree with roots - the origin of things. Books come from trees (paper)!',
+        exampleWords: [
+            { word: '日本', reading: 'にほん', meaning: 'Japan' },
+            { word: '本', reading: 'ほん', meaning: 'book' },
+        ],
+    },
+    {
+        character: '学',
+        meanings: ['study', 'learning', 'science'],
+        onyomi: ['ガク'],
+        kunyomi: ['まな-ぶ'],
+        strokeCount: 8,
+        mnemonic: 'A child (子) under a roof with knowledge raining down - a place of learning.',
+        exampleWords: [
+            { word: '学生', reading: 'がくせい', meaning: 'student' },
+            { word: '大学', reading: 'だいがく', meaning: 'university' },
+        ],
+    },
+    {
+        character: '生',
+        meanings: ['life', 'birth', 'raw'],
+        onyomi: ['セイ', 'ショウ'],
+        kunyomi: ['い-きる', 'う-まれる', 'なま'],
+        strokeCount: 5,
+        mnemonic: 'A plant sprouting from the earth - new life growing.',
+        exampleWords: [
+            { word: '先生', reading: 'せんせい', meaning: 'teacher' },
+            { word: '生まれる', reading: 'うまれる', meaning: 'to be born' },
+        ],
+    },
+    {
+        character: '私',
+        meanings: ['I', 'me', 'private'],
+        onyomi: ['シ'],
+        kunyomi: ['わたし', 'わたくし'],
+        strokeCount: 7,
+        mnemonic: 'Grain (禾) + self = my private grain field. What\'s mine is private.',
+        exampleWords: [
+            { word: '私', reading: 'わたし', meaning: 'I; me' },
+            { word: '私達', reading: 'わたしたち', meaning: 'we; us' },
+        ],
+    },
+];
+
+// 20 Essential Vocabulary for Unit 1 (Molecules)
+const unit1Vocabulary = [
+    // Pronouns (2)
+    { writing: '私', reading: 'わたし', meaning: 'I; me', partOfSpeech: 'pronoun' },
+    { writing: 'あなた', reading: 'あなた', meaning: 'you', partOfSpeech: 'pronoun' },
+
+    // People (3)
+    { writing: '学生', reading: 'がくせい', meaning: 'student', partOfSpeech: 'noun' },
+    { writing: '先生', reading: 'せんせい', meaning: 'teacher; professor', partOfSpeech: 'noun' },
+    { writing: '人', reading: 'ひと', meaning: 'person', partOfSpeech: 'noun' },
+
+    // Countries (2)
+    { writing: '日本', reading: 'にほん', meaning: 'Japan', partOfSpeech: 'noun' },
+    { writing: 'アメリカ', reading: 'アメリカ', meaning: 'America; USA', partOfSpeech: 'noun' },
+
+    // Expressions (5)
+    { writing: 'こんにちは', reading: 'こんにちは', meaning: 'hello; good afternoon', partOfSpeech: 'expression' },
+    { writing: 'さようなら', reading: 'さようなら', meaning: 'goodbye', partOfSpeech: 'expression' },
+    { writing: 'ありがとう', reading: 'ありがとう', meaning: 'thank you', partOfSpeech: 'expression' },
+    { writing: 'はい', reading: 'はい', meaning: 'yes', partOfSpeech: 'expression' },
+    { writing: 'いいえ', reading: 'いいえ', meaning: 'no', partOfSpeech: 'expression' },
+
+    // Verbs - Polite Form (4)
+    { writing: '行きます', reading: 'いきます', meaning: 'to go (polite)', partOfSpeech: 'verb' },
+    { writing: '食べます', reading: 'たべます', meaning: 'to eat (polite)', partOfSpeech: 'verb' },
+    { writing: '見ます', reading: 'みます', meaning: 'to see; watch (polite)', partOfSpeech: 'verb' },
+    { writing: '飲みます', reading: 'のみます', meaning: 'to drink (polite)', partOfSpeech: 'verb' },
+
+    // Nouns (4)
+    { writing: '本', reading: 'ほん', meaning: 'book', partOfSpeech: 'noun' },
+    { writing: '名前', reading: 'なまえ', meaning: 'name', partOfSpeech: 'noun' },
+    { writing: '友達', reading: 'ともだち', meaning: 'friend', partOfSpeech: 'noun' },
+    { writing: '会社員', reading: 'かいしゃいん', meaning: 'office worker; employee', partOfSpeech: 'noun' },
+];
+
+// 3 Grammar Lessons for Unit 1 (Logic)
+const unit1GrammarLessons = [
+    {
+        title: 'Lesson 1.1: Topic Marker は (wa)',
+        type: 'grammar',
+        content: {
+            grammarPoint: 'X は Y です',
+            explanation: 'The particle は (pronounced "wa") marks the topic of a sentence. です (desu) is the polite copula meaning "is/am/are".',
+            questionType: 'fill_blank',
+            questions: [
+                {
+                    sentence: '私{_}田中です',
+                    sentenceReading: 'わたし{_}たなかです',
+                    sentenceEnglish: 'I am Tanaka.',
+                    answer: 'は',
+                    hint: 'Topic marker particle',
+                },
+                {
+                    sentence: '田中さん{_}学生です',
+                    sentenceReading: 'たなかさん{_}がくせいです',
+                    sentenceEnglish: 'Mr. Tanaka is a student.',
+                    answer: 'は',
+                    hint: 'Topic marker particle',
+                },
+                {
+                    sentence: 'あなた{_}先生ですか',
+                    sentenceReading: 'あなた{_}せんせいですか',
+                    sentenceEnglish: 'Are you a teacher?',
+                    answer: 'は',
+                    hint: 'Topic marker particle',
+                },
+                {
+                    sentence: '私{_}日本人です',
+                    sentenceReading: 'わたし{_}にほんじんです',
+                    sentenceEnglish: 'I am Japanese.',
+                    answer: 'は',
+                    hint: 'Topic marker particle',
+                },
+            ],
+        },
+    },
+    {
+        title: 'Lesson 1.2: Question Marker か (ka)',
+        type: 'grammar',
+        content: {
+            grammarPoint: 'X は Y ですか',
+            explanation: 'Adding か (ka) at the end of a statement turns it into a question. In Japanese, you don\'t need to change word order for questions!',
+            questionType: 'word_bank',
+            questions: [
+                {
+                    targetSentence: 'あなたは学生ですか',
+                    targetReading: 'あなたはがくせいですか',
+                    targetEnglish: 'Are you a student?',
+                    words: ['です', 'か', '学生', 'あなた', 'は'],
+                    wordsReading: ['です', 'か', 'がくせい', 'あなた', 'は'],
+                    correctOrder: [3, 4, 2, 0, 1],
+                },
+                {
+                    targetSentence: '田中さんは先生ですか',
+                    targetReading: 'たなかさんはせんせいですか',
+                    targetEnglish: 'Is Mr. Tanaka a teacher?',
+                    words: ['先生', 'は', 'ですか', '田中さん'],
+                    wordsReading: ['せんせい', 'は', 'ですか', 'たなかさん'],
+                    correctOrder: [3, 1, 0, 2],
+                },
+                {
+                    targetSentence: '山田さんは日本人ですか',
+                    targetReading: 'やまださんはにほんじんですか',
+                    targetEnglish: 'Is Mr. Yamada Japanese?',
+                    words: ['日本人', 'ですか', '山田さん', 'は'],
+                    wordsReading: ['にほんじん', 'ですか', 'やまださん', 'は'],
+                    correctOrder: [2, 3, 0, 1],
+                },
+            ],
+        },
+    },
+    {
+        title: 'Lesson 1.3: Possessive の (no)',
+        type: 'grammar',
+        content: {
+            grammarPoint: 'X の Y',
+            explanation: 'The particle の (no) shows possession or connection between nouns. It\'s like the English "\'s" or "of".',
+            questionType: 'multiple_choice',
+            questions: [
+                {
+                    sentence: '私___本です',
+                    sentenceReading: 'わたし___ほんです',
+                    sentenceEnglish: 'It is my book.',
+                    options: ['は', 'が', 'の', 'を'],
+                    correctAnswer: 2,
+                    explanation: 'の connects "私" (I) with "本" (book) to show possession.',
+                },
+                {
+                    sentence: '田中さん___友達',
+                    sentenceReading: 'たなかさん___ともだち',
+                    sentenceEnglish: 'Tanaka\'s friend',
+                    options: ['の', 'は', 'に', 'で'],
+                    correctAnswer: 0,
+                    explanation: 'の shows the friend belongs to/is connected to Tanaka.',
+                },
+                {
+                    sentence: '日本___学生',
+                    sentenceReading: 'にほん___がくせい',
+                    sentenceEnglish: 'A student from Japan',
+                    options: ['は', 'の', 'が', 'と'],
+                    correctAnswer: 1,
+                    explanation: 'の connects "Japan" with "student" showing origin.',
+                },
+                {
+                    sentence: '会社___名前',
+                    sentenceReading: 'かいしゃ___なまえ',
+                    sentenceEnglish: 'The company\'s name',
+                    options: ['を', 'に', 'の', 'で'],
+                    correctAnswer: 2,
+                    explanation: 'の shows the name belongs to the company.',
+                },
+            ],
+        },
+    },
+];
 
 async function seed() {
     console.log('🌱 Starting comprehensive N5 seed...\n');
@@ -80,7 +314,28 @@ async function seed() {
         console.log('🈶 Seeding N5 kanji...');
         const kanjiIds: Record<string, number> = {};
 
+        // First insert Unit 1 focused kanji
+        for (const k of unit1Kanji) {
+            const [inserted] = await db.insert(kanji).values({
+                character: k.character,
+                meanings: k.meanings,
+                onyomi: k.onyomi || [],
+                kunyomi: k.kunyomi || [],
+                jlptLevel: 'N5',
+                strokeCount: k.strokeCount,
+                mnemonic: k.mnemonic,
+                radicals: [],
+                exampleWords: k.exampleWords,
+            }).returning();
+            kanjiIds[k.character] = inserted.id;
+        }
+        console.log(`   ✓ Inserted ${unit1Kanji.length} Unit 1 core kanji`);
+
+        // Then insert remaining N5 kanji (skip duplicates)
+        const unit1Chars = new Set(unit1Kanji.map(k => k.character));
+        let additionalKanji = 0;
         for (const k of n5KanjiData) {
+            if (unit1Chars.has(k.character)) continue; // Skip duplicates
             const [inserted] = await db.insert(kanji).values({
                 character: k.character,
                 meanings: k.meanings,
@@ -93,13 +348,15 @@ async function seed() {
                 exampleWords: [],
             }).returning();
             kanjiIds[k.character] = inserted.id;
+            additionalKanji++;
         }
-        console.log(`   ✓ Inserted ${n5KanjiData.length} kanji\n`);
+        console.log(`   ✓ Inserted ${additionalKanji} additional N5 kanji\n`);
 
         // ============ SEED VOCABULARY ============
         console.log('📚 Seeding N5 vocabulary...');
 
-        for (const v of n5VocabularyData) {
+        // First insert Unit 1 vocabulary
+        for (const v of unit1Vocabulary) {
             await db.insert(vocabulary).values({
                 writing: v.writing,
                 reading: v.reading,
@@ -110,7 +367,25 @@ async function seed() {
                 exampleSentences: [],
             });
         }
-        console.log(`   ✓ Inserted ${n5VocabularyData.length} vocabulary words\n`);
+        console.log(`   ✓ Inserted ${unit1Vocabulary.length} Unit 1 essential vocabulary`);
+
+        // Then insert remaining N5 vocabulary (skip duplicates)
+        const unit1Writings = new Set(unit1Vocabulary.map(v => v.writing));
+        let additionalVocab = 0;
+        for (const v of n5VocabularyData) {
+            if (unit1Writings.has(v.writing)) continue; // Skip duplicates
+            await db.insert(vocabulary).values({
+                writing: v.writing,
+                reading: v.reading,
+                meaning: v.meaning,
+                partOfSpeech: v.partOfSpeech,
+                jlptLevel: 'N5',
+                kanjiComponents: [],
+                exampleSentences: [],
+            });
+            additionalVocab++;
+        }
+        console.log(`   ✓ Inserted ${additionalVocab} additional N5 vocabulary\n`);
 
         // ============ SEED GRAMMAR PATTERNS ============
         console.log('📖 Seeding grammar patterns...');
@@ -180,42 +455,42 @@ async function seed() {
                 ]
             },
             {
-                title: 'Unit 1: Greetings & Self-Introduction',
-                description: 'Learn essential greetings and how to introduce yourself',
+                title: 'Unit 1: Self-Introduction & Basic Sentences',
+                description: 'Master the core particles は, の, and か to form basic sentences and questions',
                 lessons: [
+                    // Theory: Basic greetings
                     {
-                        title: 'Basic Greetings', type: 'theory', content: {
+                        title: 'Essential Greetings', type: 'theory', content: {
                             grammar: 'Basic Japanese Greetings',
-                            explanation: 'Japanese has different greetings for different times of day. The level of formality matters too.',
+                            explanation: 'Japanese has different greetings for different times of day and levels of formality.',
                             examples: [
-                                { japanese: 'おはようございます', reading: 'ohayou gozaimasu', english: 'Good morning (polite)' },
-                                { japanese: 'こんにちは', reading: 'konnichiwa', english: 'Hello/Good afternoon' },
-                                { japanese: 'こんばんは', reading: 'konbanwa', english: 'Good evening' },
+                                { japanese: 'こんにちは', reading: 'konnichiwa', english: 'Hello / Good afternoon' },
+                                { japanese: 'さようなら', reading: 'sayounara', english: 'Goodbye' },
+                                { japanese: 'ありがとう', reading: 'arigatou', english: 'Thank you' },
                             ]
                         }
                     },
+                    // Vocab drill for greetings
                     {
-                        title: 'Greetings Drill', type: 'vocab_drill', content: {
-                            instructions: 'Type the reading for each greeting',
-                            characters: ['おはよう', 'こんにちは', 'こんばんは', 'さようなら'],
-                            romaji: ['ohayou', 'konnichiha', 'konbanha', 'sayounara']
+                        title: 'Greetings Practice', type: 'vocab_drill', content: {
+                            instructions: 'Type the reading for each expression',
+                            characters: ['こんにちは', 'さようなら', 'ありがとう', 'はい', 'いいえ'],
+                            romaji: ['konnichiha', 'sayounara', 'arigatou', 'hai', 'iie']
                         }
                     },
+                    // NEW: Grammar lesson with fill_blank
+                    ...unit1GrammarLessons.map(l => ({
+                        title: l.title,
+                        type: l.type,
+                        content: l.content,
+                    })),
+                    // Kanji practice for Unit 1
                     {
-                        title: 'Self-Introduction Grammar', type: 'theory', content: {
-                            grammar: 'は topic particle + です',
-                            explanation: 'Use は (wa) to mark the topic and です (desu) for polite endings.',
-                            examples: [
-                                { japanese: '私は田中です', reading: 'watashi wa tanaka desu', english: 'I am Tanaka' },
-                            ]
-                        }
-                    },
-                    {
-                        title: 'Self-Introduction Practice', type: 'grammar_drill', content: {
-                            sentences: [
-                                { q: '私_学生です', a: 'は', hint: 'Topic particle' },
-                                { q: '田中さん_先生です', a: 'は', hint: 'Topic particle' },
-                            ]
+                        title: 'Unit 1 Kanji', type: 'kanji_practice', content: {
+                            instructions: 'Learn the core kanji for self-introduction',
+                            kanji: ['人', '日', '本', '学', '生', '私'],
+                            readings: ['ひと', 'ひ', 'ほん', 'がく', 'せい', 'わたし'],
+                            meanings: ['person', 'day/sun', 'book/origin', 'study', 'life', 'I/private']
                         }
                     },
                 ]
@@ -241,16 +516,6 @@ async function seed() {
                             readings: ['いち', 'に', 'さん', 'よん', 'ご', 'ろく', 'なな', 'はち', 'きゅう', 'じゅう']
                         }
                     },
-                    {
-                        title: 'Counting Objects', type: 'theory', content: {
-                            grammar: 'Counter Words',
-                            explanation: 'Japanese uses counter words when counting objects. The counter depends on the type of object.',
-                            examples: [
-                                { japanese: '本を一冊', reading: 'hon wo issatsu', english: 'one book' },
-                                { japanese: '人が三人', reading: 'hito ga sannin', english: 'three people' },
-                            ]
-                        }
-                    },
                 ]
             },
             {
@@ -265,13 +530,6 @@ async function seed() {
                                 { japanese: '今、三時です', reading: 'ima, sanji desu', english: 'It is 3 o\'clock now' },
                                 { japanese: '七時半', reading: 'shichiji han', english: 'half past seven' },
                             ]
-                        }
-                    },
-                    {
-                        title: 'Days of the Week', type: 'vocab_drill', content: {
-                            instructions: 'Match the day with its reading',
-                            characters: ['月曜日', '火曜日', '水曜日', '木曜日', '金曜日'],
-                            romaji: ['getsuyoubi', 'kayoubi', 'suiyoubi', 'mokuyoubi', 'kinyoubi']
                         }
                     },
                     {
@@ -290,20 +548,10 @@ async function seed() {
                     {
                         title: 'Introduction to ます Form', type: 'theory', content: {
                             grammar: 'Polite verb form (ます)',
-                            explanation: 'The ます form is the polite present/future form of verbs. It\'s used in formal situations.',
+                            explanation: 'The ます form is the polite present/future form of verbs.',
                             examples: [
                                 { japanese: '食べます', reading: 'tabemasu', english: 'I eat / I will eat' },
                                 { japanese: '飲みます', reading: 'nomimasu', english: 'I drink / I will drink' },
-                            ]
-                        }
-                    },
-                    {
-                        title: 'Verb Conjugation: Negative', type: 'theory', content: {
-                            grammar: 'ません - Negative form',
-                            explanation: 'Change ます to ません to make the negative form.',
-                            examples: [
-                                { japanese: '食べません', reading: 'tabemasen', english: 'I don\'t eat' },
-                                { japanese: '行きません', reading: 'ikimasen', english: 'I don\'t go' },
                             ]
                         }
                     },
@@ -323,143 +571,21 @@ async function seed() {
                     {
                         title: 'は vs が', type: 'theory', content: {
                             grammar: 'Topic (は) vs Subject (が)',
-                            explanation: 'は marks the topic (what we\'re talking about), が marks the subject (who/what does the action or is described).',
+                            explanation: 'は marks the topic, が marks the subject.',
                             examples: [
-                                { japanese: '私は学生です', reading: 'watashi wa gakusei desu', english: 'I am a student (topic)' },
-                                { japanese: '誰が来ましたか', reading: 'dare ga kimashita ka', english: 'Who came? (subject)' },
+                                { japanese: '私は学生です', reading: 'watashi wa gakusei desu', english: 'I am a student' },
+                                { japanese: '誰が来ましたか', reading: 'dare ga kimashita ka', english: 'Who came?' },
                             ]
                         }
                     },
                     {
-                        title: 'を and に', type: 'theory', content: {
-                            grammar: 'Object (を) and Direction/Time (に)',
-                            explanation: 'を marks the direct object. に marks destination, time, or indirect object.',
-                            examples: [
-                                { japanese: 'パンを食べます', reading: 'pan wo tabemasu', english: 'I eat bread' },
-                                { japanese: '学校に行きます', reading: 'gakkou ni ikimasu', english: 'I go to school' },
+                        title: 'Particle Practice', type: 'grammar', content: {
+                            questionType: 'fill_blank',
+                            questions: [
+                                { sentence: 'パン{_}食べます', sentenceReading: 'ぱん{_}たべます', answer: 'を', hint: 'Object marker' },
+                                { sentence: '学校{_}行きます', sentenceReading: 'がっこう{_}いきます', answer: 'に', hint: 'Direction marker' },
+                                { sentence: '私{_}日本人です', sentenceReading: 'わたし{_}にほんじんです', answer: 'は', hint: 'Topic marker' },
                             ]
-                        }
-                    },
-                    {
-                        title: 'Particle Practice', type: 'grammar_drill', content: {
-                            sentences: [
-                                { q: 'パン_食べます', a: 'を', hint: 'Object marker' },
-                                { q: '学校_行きます', a: 'に', hint: 'Direction marker' },
-                                { q: '私_日本人です', a: 'は', hint: 'Topic marker' },
-                            ]
-                        }
-                    },
-                ]
-            },
-            {
-                title: 'Unit 6: Adjectives (い and な)',
-                description: 'Learn to describe things using Japanese adjectives',
-                lessons: [
-                    {
-                        title: 'い-Adjectives', type: 'theory', content: {
-                            grammar: 'い-Adjectives',
-                            explanation: 'Adjectives ending in い conjugate by changing the い.',
-                            examples: [
-                                { japanese: '大きい', reading: 'ookii', english: 'big' },
-                                { japanese: '大きくない', reading: 'ookikunai', english: 'not big' },
-                            ]
-                        }
-                    },
-                    {
-                        title: 'な-Adjectives', type: 'theory', content: {
-                            grammar: 'な-Adjectives',
-                            explanation: 'These adjectives need な when modifying nouns.',
-                            examples: [
-                                { japanese: '静かな部屋', reading: 'shizuka na heya', english: 'quiet room' },
-                                { japanese: '綺麗な花', reading: 'kirei na hana', english: 'beautiful flower' },
-                            ]
-                        }
-                    },
-                    {
-                        title: 'Adjective Drill', type: 'vocab_drill', content: {
-                            instructions: 'Type the reading for each adjective',
-                            characters: ['大きい', '小さい', '新しい', '古い', '高い'],
-                            romaji: ['ookii', 'chiisai', 'atarashii', 'furui', 'takai']
-                        }
-                    },
-                ]
-            },
-            {
-                title: 'Unit 7: Existence (あります / います)',
-                description: 'Express existence and location of things and people',
-                lessons: [
-                    {
-                        title: 'あります vs います', type: 'theory', content: {
-                            grammar: 'Existence verbs',
-                            explanation: 'あります for inanimate objects, います for living things.',
-                            examples: [
-                                { japanese: '本があります', reading: 'hon ga arimasu', english: 'There is a book' },
-                                { japanese: '猫がいます', reading: 'neko ga imasu', english: 'There is a cat' },
-                            ]
-                        }
-                    },
-                    {
-                        title: 'Location Words', type: 'vocab_drill', content: {
-                            instructions: 'Learn location words',
-                            characters: ['上', '下', '中', '横', '前', '後ろ'],
-                            romaji: ['ue', 'shita', 'naka', 'yoko', 'mae', 'ushiro']
-                        }
-                    },
-                ]
-            },
-            {
-                title: 'Unit 8: て-Form and Requests',
-                description: 'Learn the connective て-form and making requests',
-                lessons: [
-                    {
-                        title: 'Introduction to て-Form', type: 'theory', content: {
-                            grammar: 'て-Form Formation',
-                            explanation: 'The て-form connects actions and is used for requests.',
-                            examples: [
-                                { japanese: '食べて', reading: 'tabete', english: 'eat and...' },
-                                { japanese: '見て', reading: 'mite', english: 'look and...' },
-                            ]
-                        }
-                    },
-                    {
-                        title: 'ください - Please do', type: 'theory', content: {
-                            grammar: 'てください',
-                            explanation: 'Add ください to て-form to make polite requests.',
-                            examples: [
-                                { japanese: '見てください', reading: 'mite kudasai', english: 'Please look' },
-                                { japanese: '待ってください', reading: 'matte kudasai', english: 'Please wait' },
-                            ]
-                        }
-                    },
-                ]
-            },
-            {
-                title: 'Unit 9: Past Tense and Review',
-                description: 'Learn past tense and review all grammar patterns',
-                lessons: [
-                    {
-                        title: 'Past Tense (ました)', type: 'theory', content: {
-                            grammar: 'Past tense verb form',
-                            explanation: 'Change ます to ました for past tense.',
-                            examples: [
-                                { japanese: '食べました', reading: 'tabemashita', english: 'I ate' },
-                                { japanese: '行きました', reading: 'ikimashita', english: 'I went' },
-                            ]
-                        }
-                    },
-                    {
-                        title: 'Negative Past (ませんでした)', type: 'theory', content: {
-                            grammar: 'Negative past tense',
-                            explanation: 'ません becomes ませんでした.',
-                            examples: [
-                                { japanese: '食べませんでした', reading: 'tabemasendeshita', english: 'I didn\'t eat' },
-                            ]
-                        }
-                    },
-                    {
-                        title: 'Comprehensive Review', type: 'mixed_review', content: {
-                            instructions: 'Review all grammar patterns learned',
-                            sections: ['particles', 'verbs', 'adjectives', 'existence']
                         }
                     },
                 ]
@@ -540,38 +666,23 @@ async function seed() {
             dialogues: [
                 { speaker: 'Waiter', japanese: 'いらっしゃいませ！', reading: 'irasshaimase', english: 'Welcome!' },
                 { speaker: 'Customer', japanese: 'すみません、メニューをください。', reading: 'sumimasen, menyuu wo kudasai', english: 'Excuse me, please give me a menu.' },
-                { speaker: 'Waiter', japanese: 'はい、どうぞ。', reading: 'hai, douzo', english: 'Yes, here you go.' },
-                { speaker: 'Customer', japanese: 'ラーメンをお願いします。', reading: 'raamen wo onegaishimasu', english: 'Ramen, please.' },
             ],
-            culturalNotes: 'In Japan, staff greet customers with "いらっしゃいませ" when they enter a restaurant.',
+            culturalNotes: 'In Japan, staff greet customers with "いらっしゃいませ" when they enter.',
         });
 
-        await db.insert(contexts).values({
-            title: 'At the Train Station',
-            scenario: 'Navigate the train station and buy tickets',
-            jlptLevel: 'N5',
-            vocabularyIds: [],
-            grammarPatternIds: [],
-            dialogues: [
-                { speaker: 'Customer', japanese: '東京までいくらですか？', reading: 'toukyou made ikura desu ka', english: 'How much is it to Tokyo?' },
-                { speaker: 'Staff', japanese: '五百円です。', reading: 'gohyaku en desu', english: 'It\'s 500 yen.' },
-                { speaker: 'Customer', japanese: '一枚ください。', reading: 'ichimai kudasai', english: 'One ticket, please.' },
-            ],
-            culturalNotes: 'Train stations in Japan are very organized. Follow the signs and don\'t be afraid to ask for help.',
-        });
-
-        console.log('   ✓ Created 2 learning contexts\n');
+        console.log('   ✓ Created learning contexts\n');
 
         // ============ SUMMARY ============
+        const totalLessons = unitDefinitions.reduce((sum, u) => sum + u.lessons.length, 0);
         console.log('✅ Seed completed successfully!\n');
         console.log('📊 Summary:');
         console.log(`   - ${hiraganaData.length + katakanaData.length} kana characters`);
-        console.log(`   - ${n5KanjiData.length} kanji`);
-        console.log(`   - ${n5VocabularyData.length} vocabulary words`);
+        console.log(`   - ${unit1Kanji.length} Unit 1 core kanji + ${additionalKanji} additional kanji`);
+        console.log(`   - ${unit1Vocabulary.length} Unit 1 vocabulary + ${additionalVocab} additional vocabulary`);
         console.log(`   - ${n5GrammarData.length} grammar patterns`);
-        console.log(`   - 10 units with ${unitDefinitions.reduce((sum, u) => sum + u.lessons.length, 0)} lessons`);
+        console.log(`   - ${unitDefinitions.length} units with ${totalLessons} lessons`);
+        console.log(`   - 3 NEW grammar lesson types (fill_blank, word_bank, multiple_choice)`);
         console.log(`   - 1 mock exam`);
-        console.log(`   - 2 learning contexts`);
 
     } catch (error) {
         console.error('❌ Seed failed:', error);
