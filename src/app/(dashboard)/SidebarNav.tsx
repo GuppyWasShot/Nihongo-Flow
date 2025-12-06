@@ -2,11 +2,12 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Home, BookOpen, RotateCcw, Settings, FileText } from 'lucide-react';
+import { Home, BookOpen, RotateCcw, Settings, FileText, Layers } from 'lucide-react';
 
 const navItems = [
     { href: '/learn', icon: Home, label: 'Dashboard' },
     { href: '/library', icon: BookOpen, label: 'Library' },
+    { href: '/flashcards', icon: Layers, label: 'Flashcards' },
     { href: '/review', icon: RotateCcw, label: 'Review' },
     { href: '/exam', icon: FileText, label: 'Exams' },
     { href: '/settings', icon: Settings, label: 'Settings' },

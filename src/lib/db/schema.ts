@@ -70,6 +70,7 @@ export const vocabulary = pgTable('vocabulary', {
   meaning: text('meaning').notNull(), // English meaning
   partOfSpeech: varchar('part_of_speech', { length: 50 }), // 'noun', 'verb', 'adjective', etc.
   jlptLevel: varchar('jlpt_level', { length: 10 }).notNull(),
+  unitId: integer('unit_id').references(() => units.id), // Unit this vocabulary belongs to
   kanjiComponents: jsonb('kanji_components').$type<number[]>().default([]), // Foreign keys to kanji.id
   exampleSentences: jsonb('example_sentences').$type<{
     japanese: string;
@@ -81,6 +82,7 @@ export const vocabulary = pgTable('vocabulary', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
   jlptLevelIdx: index('vocabulary_jlpt_level_idx').on(table.jlptLevel),
+  unitIdIdx: index('vocabulary_unit_id_idx').on(table.unitId),
 }));
 
 // ==================== Grammar Patterns ====================
@@ -260,6 +262,43 @@ export const kanaCharacters = pgTable('kana_characters', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// ==================== Flashcard System ====================
+
+export const flashcardDecks = pgTable('flashcard_decks', {
+  id: serial('id').primaryKey(),
+  userId: uuid('user_id').notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  isPublic: boolean('is_public').default(false),
+  itemType: varchar('item_type', { length: 20 }).notNull(), // 'kanji', 'vocabulary', 'grammar', 'mixed'
+  itemIds: jsonb('item_ids').$type<number[]>().default([]),
+  jlptLevel: varchar('jlpt_level', { length: 10 }), // Optional level filter
+  unitId: integer('unit_id').references(() => units.id), // Optional unit filter
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('flashcard_decks_user_id_idx').on(table.userId),
+  isPublicIdx: index('flashcard_decks_public_idx').on(table.isPublic),
+}));
+
+export const flashcardSessions = pgTable('flashcard_sessions', {
+  id: serial('id').primaryKey(),
+  userId: uuid('user_id').notNull(),
+  deckId: integer('deck_id').references(() => flashcardDecks.id, { onDelete: 'cascade' }),
+  studyMode: varchar('study_mode', { length: 20 }).notNull(), // 'recognition', 'production', 'cram', 'test'
+  totalCards: integer('total_cards').notNull().default(0),
+  correct: integer('correct').notNull().default(0),
+  incorrect: integer('incorrect').notNull().default(0),
+  accuracy: real('accuracy'), // 0-100 percentage
+  duration: integer('duration'), // Seconds
+  startedAt: timestamp('started_at').defaultNow().notNull(),
+  completedAt: timestamp('completed_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('flashcard_sessions_user_id_idx').on(table.userId),
+  deckIdIdx: index('flashcard_sessions_deck_id_idx').on(table.deckId),
+}));
+
 // ==================== Type Exports ====================
 
 export type Course = typeof courses.$inferSelect;
@@ -300,3 +339,9 @@ export type NewUserProfile = typeof userProfiles.$inferInsert;
 
 export type KanaCharacter = typeof kanaCharacters.$inferSelect;
 export type NewKanaCharacter = typeof kanaCharacters.$inferInsert;
+
+export type FlashcardDeck = typeof flashcardDecks.$inferSelect;
+export type NewFlashcardDeck = typeof flashcardDecks.$inferInsert;
+
+export type FlashcardSession = typeof flashcardSessions.$inferSelect;
+export type NewFlashcardSession = typeof flashcardSessions.$inferInsert;

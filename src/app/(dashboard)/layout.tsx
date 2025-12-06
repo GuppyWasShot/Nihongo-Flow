@@ -18,12 +18,10 @@ async function getUser() {
                 get(name: string) {
                     return cookieStore.get(name)?.value;
                 },
-                set(name: string, value: string, options: any) {
-                    cookieStore.set({ name, value, ...options });
-                },
-                remove(name: string, options: any) {
-                    cookieStore.set({ name, value: '', ...options });
-                },
+                // In Server Components, we can only read cookies, not set them
+                // Cookie modifications must happen in Server Actions or Route Handlers
+                set() { },
+                remove() { },
             },
         }
     );

@@ -10,7 +10,8 @@ import postgres from 'postgres';
 import fs from 'fs';
 import path from 'path';
 
-const migrationPath = path.join(process.cwd(), 'drizzle', '0002_quiet_korath.sql');
+// Use the most recent migration file
+const migrationPath = path.join(process.cwd(), 'drizzle', '0003_salty_komodo.sql');
 
 async function runMigration() {
     console.log('🚀 Running migration...\n');
