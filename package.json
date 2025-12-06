@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "tsx --env-file=.env.local src/lib/db/seed.ts"
+    "seed": "tsx --env-file=.env.local src/lib/db/seed.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
     "@supabase/auth-helpers-nextjs": "^0.15.0",

@@ -15,6 +15,13 @@
       "when": 1764597236181,
       "tag": "0001_cheerful_stature",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1764995737063,
+      "tag": "0002_quiet_korath",
+      "breakpoints": true
     }
   ]
 }
