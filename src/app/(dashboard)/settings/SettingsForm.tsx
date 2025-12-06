@@ -3,7 +3,17 @@
 import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { updateProfile } from './actions';
-import { User, MapPin, FileText, Image } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+
+interface SettingsFormProps {
+    initialData: {
+        displayName: string;
+        email: string;
+        location: string;
+        bio: string;
+        avatar: string;
+    };
+}
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -12,177 +22,132 @@ function SubmitButton() {
         <button
             type="submit"
             disabled={pending}
-            className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+            className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-600 hover:to-teal-600 transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 active:scale-[0.98]"
         >
+            {pending && <Loader2 className="w-4 h-4 animate-spin" />}
             {pending ? 'Saving...' : 'Save Changes'}
         </button>
     );
 }
 
-interface SettingsFormProps {
-    initialData: {
-        email: string;
-        displayName: string;
-        avatarUrl: string;
-        location: string;
-        bio: string;
-    };
-}
-
-const LOCATIONS = [
-    'Jakarta, Indonesia',
-    'Surabaya, Indonesia',
-    'Bandung, Indonesia',
-    'Medan, Indonesia',
-    'Semarang, Indonesia',
-    'Makassar, Indonesia',
-    'Bali, Indonesia',
-    'Other',
-];
-
-const PRESET_AVATARS = [
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Bella',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Charlie',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Max',
+const avatarOptions = [
+    { id: 'default', emoji: '👤' },
+    { id: 'cat', emoji: '🐱' },
+    { id: 'dog', emoji: '🐕' },
+    { id: 'panda', emoji: '🐼' },
+    { id: 'sakura', emoji: '🌸' },
+    { id: 'fuji', emoji: '🗻' },
 ];
 
 export default function SettingsForm({ initialData }: SettingsFormProps) {
+    const [selectedAvatar, setSelectedAvatar] = useState(initialData.avatar);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-    const [selectedAvatar, setSelectedAvatar] = useState(initialData.avatarUrl || PRESET_AVATARS[0]);
 
     async function handleSubmit(formData: FormData) {
-        formData.set('avatarUrl', selectedAvatar);
+        formData.set('avatar', selectedAvatar);
 
         const result = await updateProfile(formData);
 
         if ('error' in result && result.error) {
             setMessage({ type: 'error', text: result.error });
-        } else if ('success' in result && result.success) {
-            setMessage({ type: 'success', text: result.success });
-            setTimeout(() => setMessage(null), 3000);
+        } else {
+            setMessage({ type: 'success', text: 'Profile updated successfully!' });
         }
+
+        setTimeout(() => setMessage(null), 4000);
     }
 
     return (
         <form action={handleSubmit} className="space-y-6">
             {/* Avatar Selection */}
             <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Image className="w-4 h-4" />
-                        <span>Profile Picture</span>
-                    </div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+                    Avatar
                 </label>
-                <div className="flex items-center gap-4">
-                    <div className="flex-shrink-0">
-                        <img
-                            src={selectedAvatar}
-                            alt="Avatar"
-                            className="w-20 h-20 rounded-full border-4 border-indigo-100 dark:border-indigo-900"
-                        />
-                    </div>
-                    <div className="grid grid-cols-5 gap-2">
-                        {PRESET_AVATARS.map((avatar) => (
-                            <button
-                                key={avatar}
-                                type="button"
-                                onClick={() => setSelectedAvatar(avatar)}
-                                className={`w-12 h-12 rounded-full border-2 ${selectedAvatar === avatar
-                                    ? 'border-indigo-600 dark:border-indigo-400 ring-2 ring-indigo-300 dark:ring-indigo-700'
-                                    : 'border-gray-300 dark:border-gray-600 hover:border-indigo-400 dark:hover:border-indigo-500'
-                                    } transition-all`}
-                            >
-                                <img src={avatar} alt="Avatar option" className="w-full h-full rounded-full" />
-                            </button>
-                        ))}
-                    </div>
+                <div className="flex gap-3 flex-wrap">
+                    {avatarOptions.map((avatar) => (
+                        <button
+                            key={avatar.id}
+                            type="button"
+                            onClick={() => setSelectedAvatar(avatar.id)}
+                            className={`flex items-center justify-center w-14 h-14 text-2xl rounded-2xl transition-all duration-200 ${selectedAvatar === avatar.id
+                                ? 'bg-emerald-100 dark:bg-emerald-900/30 ring-2 ring-emerald-500 dark:ring-emerald-400 scale-110'
+                                : 'bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600'
+                                }`}
+                        >
+                            {avatar.emoji}
+                        </button>
+                    ))}
                 </div>
             </div>
 
             {/* Display Name */}
             <div>
-                <label htmlFor="displayName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    <div className="flex items-center gap-2">
-                        <User className="w-4 h-4" />
-                        <span>Display Name</span>
-                    </div>
+                <label htmlFor="displayName" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Display Name
                 </label>
                 <input
+                    type="text"
                     id="displayName"
                     name="displayName"
-                    type="text"
                     defaultValue={initialData.displayName}
-                    placeholder="Enter your name"
-                    className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all duration-200 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                    placeholder="Enter your display name"
+                    className="w-full px-5 py-3 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-transparent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
                 />
             </div>
 
-            {/* Email (Read-only) */}
+            {/* Email (Read Only) */}
             <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Email Address
                 </label>
                 <input
+                    type="email"
                     id="email"
                     name="email"
-                    type="email"
-                    value={initialData.email}
-                    disabled
-                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                    defaultValue={initialData.email}
+                    readOnly
+                    className="w-full px-5 py-3 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 rounded-xl cursor-not-allowed"
                 />
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Email cannot be changed</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Email cannot be changed</p>
             </div>
 
             {/* Location */}
             <div>
-                <label htmlFor="location" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4" />
-                        <span>Location</span>
-                    </div>
+                <label htmlFor="location" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Location
                 </label>
-                <select
+                <input
+                    type="text"
                     id="location"
                     name="location"
                     defaultValue={initialData.location}
-                    className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all duration-200"
-                >
-                    <option value="">Select your location</option>
-                    {LOCATIONS.map((loc) => (
-                        <option key={loc} value={loc}>
-                            {loc}
-                        </option>
-                    ))}
-                </select>
+                    placeholder="e.g., Tokyo, Japan"
+                    className="w-full px-5 py-3 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-transparent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                />
             </div>
 
             {/* Bio */}
             <div>
-                <label htmlFor="bio" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4" />
-                        <span>Bio</span>
-                    </div>
+                <label htmlFor="bio" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Bio
                 </label>
                 <textarea
                     id="bio"
                     name="bio"
                     rows={4}
                     defaultValue={initialData.bio}
-                    placeholder="Tell us a bit about yourself and your Japanese learning journey..."
-                    className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all duration-200 resize-none placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                    placeholder="Tell us about yourself and your Japanese learning goals..."
+                    className="w-full px-5 py-3 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-transparent transition-all resize-none placeholder:text-slate-400 dark:placeholder:text-slate-500 leading-relaxed"
                 />
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Maximum 200 characters</p>
             </div>
 
-            {/* Message */}
+            {/* Status Message */}
             {message && (
                 <div
-                    className={`p-4 rounded-xl ${message.type === 'success'
-                        ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700'
-                        : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700'
+                    className={`px-5 py-4 rounded-xl text-sm ${message.type === 'success'
+                        ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-700/50'
+                        : 'bg-rose-50 dark:bg-rose-900/20 text-rose-800 dark:text-rose-200 border border-rose-200 dark:border-rose-700/50'
                         }`}
                 >
                     {message.text}
@@ -190,7 +155,7 @@ export default function SettingsForm({ initialData }: SettingsFormProps) {
             )}
 
             {/* Submit Button */}
-            <div className="flex items-center justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="pt-2">
                 <SubmitButton />
             </div>
         </form>

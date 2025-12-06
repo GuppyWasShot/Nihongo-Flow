@@ -1,4 +1,5 @@
-import { LucideIcon } from 'lucide-react';
+import Link from 'next/link';
+import { ChevronRight, LucideIcon } from 'lucide-react';
 import { Breadcrumb } from './Breadcrumb';
 
 interface BreadcrumbItem {
@@ -7,62 +8,48 @@ interface BreadcrumbItem {
 }
 
 interface PageHeaderProps {
+    icon?: LucideIcon;
     title: string;
     description?: string;
-    icon: LucideIcon;
     breadcrumbs?: BreadcrumbItem[];
-    children?: React.ReactNode;
+    action?: React.ReactNode;
 }
 
 /**
- * Consistent page header component with icon, title, description,
- * optional breadcrumbs, and optional action slot
- * 
- * @example
- * <PageHeader 
- *   icon={BookOpen}
- *   title="Study Library"
- *   description="Browse and review kanji and vocabulary"
- *   breadcrumbs={[{ label: 'Library' }]}
- * >
- *   <ActionButton />
- * </PageHeader>
+ * Consistent page header with icon, title, description, and optional action
+ * Can include breadcrumb navigation when breadcrumbs prop is provided
  */
 export function PageHeader({
+    icon: Icon,
     title,
     description,
-    icon: Icon,
     breadcrumbs,
-    children
+    action,
 }: PageHeaderProps) {
     return (
-        <div className="mb-8">
-            {breadcrumbs && breadcrumbs.length > 0 && (
-                <Breadcrumb items={breadcrumbs} />
-            )}
+        <div className="mb-10">
+            {breadcrumbs && <Breadcrumb items={breadcrumbs} />}
 
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl">
-                        <Icon className="w-6 h-6 text-white" />
-                    </div>
+            <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    {Icon && (
+                        <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl shadow-sm">
+                            <Icon className="w-7 h-7 text-white" />
+                        </div>
+                    )}
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                        <h1 className="text-3xl font-semibold text-slate-900 dark:text-slate-100">
                             {title}
                         </h1>
                         {description && (
-                            <p className="text-gray-600 dark:text-gray-400">
+                            <p className="text-slate-600 dark:text-slate-400 mt-1">
                                 {description}
                             </p>
                         )}
                     </div>
                 </div>
 
-                {children && (
-                    <div className="flex items-center gap-3">
-                        {children}
-                    </div>
-                )}
+                {action && <div className="flex-shrink-0">{action}</div>}
             </div>
         </div>
     );

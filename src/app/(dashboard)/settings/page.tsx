@@ -5,7 +5,7 @@ import { db } from '../../../lib/db';
 import { userProfiles } from '../../../lib/db/schema';
 import { eq } from 'drizzle-orm';
 import SettingsForm from './SettingsForm';
-import { User, Calendar } from 'lucide-react';
+import { User, Calendar, Settings } from 'lucide-react';
 import { ThemeToggleWithLabel } from '../../../components/ThemeToggle';
 
 async function getUserProfile() {
@@ -34,18 +34,7 @@ async function getUserProfile() {
         redirect('/login');
     }
 
-    // Get user profile from database
-    let [profile] = await db.select().from(userProfiles).where(eq(userProfiles.id, user.id));
-
-    // If profile doesn't exist, create it
-    if (!profile) {
-        [profile] = await db.insert(userProfiles).values({
-            id: user.id,
-            email: user.email!,
-            displayName: user.user_metadata?.name || null,
-            avatarUrl: user.user_metadata?.avatar_url || null,
-        }).returning();
-    }
+    const [profile] = await db.select().from(userProfiles).where(eq(userProfiles.id, user.id));
 
     return { user, profile };
 }
@@ -53,83 +42,80 @@ async function getUserProfile() {
 export default async function SettingsPage() {
     const { user, profile } = await getUserProfile();
 
-    // Format member since date
     const memberSince = profile?.createdAt
-        ? new Date(profile.createdAt).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-        })
+        ? new Date(profile.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
         : 'Recently';
 
     return (
-        <div className="max-w-4xl mx-auto">
-            <div className="mb-8">
-                <div className="flex items-center gap-3 mb-2">
-                    <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl">
-                        <User className="w-6 h-6 text-white" />
+        <div className="max-w-3xl mx-auto">
+            {/* Header */}
+            <div className="mb-10">
+                <div className="flex items-center gap-4 mb-6">
+                    <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl shadow-sm">
+                        <Settings className="w-7 h-7 text-white" />
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Account Settings</h1>
+                    <div>
+                        <h1 className="text-3xl font-semibold text-slate-900 dark:text-slate-100">Settings</h1>
+                        <p className="text-slate-600 dark:text-slate-400">Manage your account and preferences</p>
+                    </div>
                 </div>
-                <p className="text-gray-600 dark:text-gray-400">Manage your profile and preferences</p>
-            </div>
 
-            {/* Member Since Badge */}
-            <div className="mb-6">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 border border-indigo-200 dark:border-indigo-700 rounded-full">
-                    <Calendar className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                    <span className="text-sm font-medium text-indigo-900 dark:text-indigo-300">
-                        Member since {memberSince}
-                    </span>
+                {/* Member Badge */}
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-full text-sm text-slate-600 dark:text-slate-400">
+                    <Calendar className="w-4 h-4" />
+                    <span>Member since {memberSince}</span>
                 </div>
             </div>
 
-            {/* Settings Card */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-8 shadow-sm transition-colors duration-200">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Profile Information</h2>
+            <div className="space-y-8">
+                {/* Profile Section */}
+                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/50 p-8 transition-colors duration-200">
+                    <div className="flex items-center gap-3 mb-6">
+                        <User className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                        <h2 className="text-xl font-medium text-slate-900 dark:text-slate-100">Profile</h2>
+                    </div>
+                    <SettingsForm
+                        initialData={{
+                            displayName: profile?.displayName || '',
+                            email: user.email || '',
+                            location: profile?.location || '',
+                            bio: profile?.bio || '',
+                            avatar: profile?.avatarUrl || 'default',
+                        }}
+                    />
+                </div>
 
-                <SettingsForm
-                    initialData={{
-                        email: user.email!,
-                        displayName: profile?.displayName || '',
-                        avatarUrl: profile?.avatarUrl || '',
-                        location: profile?.location || '',
-                        bio: profile?.bio || '',
-                    }}
-                />
-            </div>
-
-            {/* Appearance Settings */}
-            <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-8 shadow-sm transition-colors duration-200">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Appearance</h2>
-                <div className="space-y-4">
+                {/* Appearance Section */}
+                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/50 p-8 transition-colors duration-200">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500" />
+                        <h2 className="text-xl font-medium text-slate-900 dark:text-slate-100">Appearance</h2>
+                    </div>
                     <ThemeToggleWithLabel />
                 </div>
-            </div>
 
-            {/* Additional Settings Sections */}
-            <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-8 shadow-sm transition-colors duration-200">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Preferences</h2>
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
-                        <div>
-                            <p className="font-medium text-gray-900 dark:text-gray-100">Email Notifications</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Receive study reminders and updates</p>
+                {/* Notification Settings */}
+                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/50 p-8 transition-colors duration-200">
+                    <h2 className="text-xl font-medium text-slate-900 dark:text-slate-100 mb-6">Notifications</h2>
+                    <div className="space-y-5">
+                        <div className="flex items-center justify-between py-3">
+                            <div>
+                                <p className="font-medium text-slate-900 dark:text-slate-100">Email notifications</p>
+                                <p className="text-sm text-slate-600 dark:text-slate-400">Receive study reminders and updates</p>
+                            </div>
+                            <button className="relative inline-flex h-7 w-12 items-center rounded-full bg-emerald-500 transition-colors">
+                                <span className="inline-block h-5 w-5 transform rounded-full bg-white shadow translate-x-6 transition-transform" />
+                            </button>
                         </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" className="sr-only peer" defaultChecked />
-                            <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                        </label>
-                    </div>
-
-                    <div className="flex items-center justify-between py-3">
-                        <div>
-                            <p className="font-medium text-gray-900 dark:text-gray-100">Study Reminders</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Daily reminders to practice Japanese</p>
+                        <div className="flex items-center justify-between py-3">
+                            <div>
+                                <p className="font-medium text-slate-900 dark:text-slate-100">Study reminders</p>
+                                <p className="text-sm text-slate-600 dark:text-slate-400">Daily reminders to maintain your streak</p>
+                            </div>
+                            <button className="relative inline-flex h-7 w-12 items-center rounded-full bg-emerald-500 transition-colors">
+                                <span className="inline-block h-5 w-5 transform rounded-full bg-white shadow translate-x-6 transition-transform" />
+                            </button>
                         </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" className="sr-only peer" />
-                            <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                        </label>
                     </div>
                 </div>
             </div>

@@ -69,21 +69,21 @@ export default async function LibraryPage() {
         srsStage: progressMap.get(`vocabulary-${v.id}`)?.srsStage ?? null,
     }));
 
-    // Get due  reviews count
+    // Get due reviews count
     const dueReviewsData = await getDueReviews();
     const dueCount = dueReviewsData && 'items' in dueReviewsData && dueReviewsData.items ? dueReviewsData.items.length : 0;
 
     return (
         <div className="max-w-7xl mx-auto">
-            <div className="mb-8">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl">
-                            <BookMarked className="w-6 h-6 text-white" />
+            <div className="mb-10">
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl shadow-sm">
+                            <BookMarked className="w-7 h-7 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Study Library</h1>
-                            <p className="text-gray-600 dark:text-gray-400">Browse and review kanji and vocabulary</p>
+                            <h1 className="text-3xl font-semibold text-slate-900 dark:text-slate-100">Study Library</h1>
+                            <p className="text-slate-600 dark:text-slate-400">Browse and review kanji and vocabulary</p>
                         </div>
                     </div>
 
@@ -91,7 +91,7 @@ export default async function LibraryPage() {
                     {dueCount > 0 && (
                         <Link
                             href="/review"
-                            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-semibold hover:from-orange-600 hover:to-red-600 transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
+                            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-400 to-orange-400 text-white rounded-xl font-medium hover:from-rose-500 hover:to-orange-500 transition-all duration-300 shadow-md hover:shadow-lg hover:translate-y-[-2px] active:scale-95"
                         >
                             <Zap className="w-5 h-5" />
                             Quick Review ({dueCount})

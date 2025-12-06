@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { loginWithEmail, signupWithEmail, loginWithGoogle } from '../actions';
-import { LogIn, Mail } from 'lucide-react';
+import { LogIn, Mail, Loader2 } from 'lucide-react';
 
 function SubmitButton({ isSignUp, loading }: { isSignUp: boolean; loading: boolean }) {
     const { pending } = useFormStatus();
@@ -12,8 +12,9 @@ function SubmitButton({ isSignUp, loading }: { isSignUp: boolean; loading: boole
         <button
             type="submit"
             disabled={pending || loading}
-            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white py-3.5 rounded-xl font-medium hover:from-emerald-600 hover:to-teal-600 transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.99]"
         >
+            {(pending || loading) && <Loader2 className="w-4 h-4 animate-spin" />}
             {pending || loading ? 'Processing...' : isSignUp ? 'Create Account' : 'Sign In'}
         </button>
     );
@@ -51,22 +52,22 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center px-4">
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center px-4 transition-colors duration-200">
             <div className="max-w-md w-full">
                 {/* Logo & Header */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl mb-4 shadow-lg">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl mb-4 shadow-lg">
                         <span className="text-3xl">日</span>
                     </div>
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    <h1 className="text-4xl font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
                         Nihongo Flow
                     </h1>
-                    <p className="text-gray-600 mt-2">Master Japanese with Context</p>
+                    <p className="text-slate-600 dark:text-slate-400 mt-2">Master Japanese with Context</p>
                 </div>
 
                 {/* Card Container */}
-                <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-                    <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-8 border border-slate-200 dark:border-slate-700/50 transition-colors duration-200">
+                    <h2 className="text-2xl font-medium text-slate-900 dark:text-slate-100 mb-6">
                         {isSignUp ? 'Create Account' : 'Welcome Back'}
                     </h2>
 
@@ -75,7 +76,7 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full flex items-center justify-center gap-3 px-4 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-colors duration-200 font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed mb-6"
+                            className="w-full flex items-center justify-center gap-3 px-4 py-3.5 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 font-medium text-slate-700 dark:text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed mb-6"
                         >
                             <svg className="w-5 h-5" viewBox="0 0 24 24">
                                 <path
@@ -102,58 +103,58 @@ export default function LoginPage() {
                     {/* Divider */}
                     <div className="relative mb-6">
                         <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-gray-300"></div>
+                            <div className="w-full border-t border-slate-200 dark:border-slate-700"></div>
                         </div>
                         <div className="relative flex justify-center text-sm">
-                            <span className="px-4 bg-white text-gray-500">Or continue with email</span>
+                            <span className="px-4 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400">Or continue with email</span>
                         </div>
                     </div>
 
                     {/* Email/Password Form */}
-                    <form action={handleEmailAuth} className="space-y-4">
+                    <form action={handleEmailAuth} className="space-y-5">
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                            <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                 Email Address
                             </label>
                             <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-slate-500" />
                                 <input
                                     id="email"
                                     name="email"
                                     type="email"
                                     required
-                                    className="w-full pl-11 pr-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                                    className="w-full pl-12 pr-4 py-3.5 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-transparent transition-all duration-200 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                                     placeholder="you@example.com"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                            <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                 Password
                             </label>
                             <div className="relative">
-                                <LogIn className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <LogIn className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-slate-500" />
                                 <input
                                     id="password"
                                     name="password"
                                     type="password"
                                     required
                                     minLength={6}
-                                    className="w-full pl-11 pr-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                                    className="w-full pl-12 pr-4 py-3.5 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-transparent transition-all duration-200 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                                     placeholder="••••••••"
                                 />
                             </div>
                         </div>
 
                         {error && (
-                            <div className="p-3 rounded-lg text-sm bg-red-50 text-red-700 border border-red-200">
+                            <div className="p-4 rounded-xl text-sm bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-200 border border-rose-200 dark:border-rose-700/50">
                                 {error}
                             </div>
                         )}
 
                         {success && (
-                            <div className="p-3 rounded-lg text-sm bg-green-50 text-green-700 border border-green-200">
+                            <div className="p-4 rounded-xl text-sm bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-700/50">
                                 {success}
                             </div>
                         )}
@@ -169,7 +170,7 @@ export default function LoginPage() {
                                 setError(null);
                                 setSuccess(null);
                             }}
-                            className="text-indigo-600 hover:text-indigo-700 font-medium text-sm transition-colors duration-200"
+                            className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium text-sm transition-colors duration-200"
                         >
                             {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
                         </button>
@@ -177,7 +178,7 @@ export default function LoginPage() {
                 </div>
 
                 {/* Footer */}
-                <p className="text-center text-gray-500 text-sm mt-6">
+                <p className="text-center text-slate-500 dark:text-slate-400 text-sm mt-6">
                     Built for Indonesian learners 🇮🇩
                 </p>
             </div>

@@ -185,17 +185,17 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center px-4"
+                className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center px-4"
             >
-                <div className="max-w-2xl w-full bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-8 text-center shadow-xl">
+                <div className="max-w-2xl w-full bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700/50 p-10 text-center shadow-lg">
                     <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ delay: 0.2, type: 'spring' }}
-                        className="flex justify-center mb-6"
+                        className="flex justify-center mb-8"
                     >
-                        <div className="flex items-center justify-center w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full">
-                            <Trophy className="w-12 h-12 text-white" />
+                        <div className="flex items-center justify-center w-28 h-28 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full shadow-lg">
+                            <Trophy className="w-14 h-14 text-white" />
                         </div>
                     </motion.div>
 
@@ -203,7 +203,7 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4"
+                        className="text-4xl font-semibold text-slate-900 dark:text-slate-100 mb-5"
                     >
                         Lesson Complete!
                     </motion.h1>
@@ -212,15 +212,15 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.4 }}
-                        className="grid grid-cols-2 gap-4 mb-8"
+                        className="grid grid-cols-2 gap-5 mb-10"
                     >
-                        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-xl p-6 border-2 border-indigo-200 dark:border-indigo-700">
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Accuracy</p>
-                            <p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">{accuracy}%</p>
+                        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl p-6 border border-emerald-200/50 dark:border-emerald-700/50">
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Accuracy</p>
+                            <p className="text-4xl font-semibold text-emerald-600 dark:text-emerald-400">{accuracy}%</p>
                         </div>
-                        <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-xl p-6 border-2 border-green-200 dark:border-green-700">
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">XP Earned</p>
-                            <p className="text-3xl font-bold text-green-600 dark:text-green-400">+{xpEarned}</p>
+                        <div className="bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-900/20 dark:to-cyan-900/20 rounded-2xl p-6 border border-teal-200/50 dark:border-teal-700/50">
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">XP Earned</p>
+                            <p className="text-4xl font-semibold text-teal-600 dark:text-teal-400">+{xpEarned}</p>
                         </div>
                     </motion.div>
 
@@ -230,7 +230,7 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                         transition={{ delay: 0.5 }}
                         onClick={handleComplete}
                         disabled={isSubmitting}
-                        className="w-full px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 active:scale-95"
+                        className="w-full px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-2xl font-medium text-lg hover:from-emerald-600 hover:to-teal-600 transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 active:scale-[0.98]"
                     >
                         {isSubmitting ? 'Saving...' : 'Continue'}
                     </motion.button>
@@ -240,7 +240,7 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
     }
 
     if (!currentItem) {
-        return <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center text-gray-900 dark:text-gray-100">Loading...</div>;
+        return <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-900 dark:text-slate-100">Loading...</div>;
     }
 
     // Render grammar question with sentence completion
@@ -248,12 +248,12 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
         const parts = currentItem.question.split('_');
 
         return (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-12 mb-6 text-center shadow-lg">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">Fill in the blank</p>
-                <div className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-8 flex items-center justify-center gap-4 flex-wrap">
+            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700/50 p-14 mb-8 text-center shadow-sm">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-8">Fill in the blank</p>
+                <div className="text-4xl font-medium text-slate-900 dark:text-slate-100 mb-8 flex items-center justify-center gap-4 flex-wrap leading-relaxed">
                     <span>{parts[0]}</span>
-                    <div className="inline-flex items-center justify-center px-6 py-3 bg-indigo-50 dark:bg-indigo-900/30 border-2 border-indigo-300 dark:border-indigo-600 border-dashed rounded-xl min-w-[120px]">
-                        <span className="text-indigo-600 dark:text-indigo-400">?</span>
+                    <div className="inline-flex items-center justify-center px-8 py-4 bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-300 dark:border-emerald-600 border-dashed rounded-xl min-w-[140px]">
+                        <span className="text-emerald-600 dark:text-emerald-400">?</span>
                     </div>
                     {parts[1] && <span>{parts[1]}</span>}
                 </div>
@@ -264,9 +264,9 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
     // Render vocabulary question as flashcard
     const renderVocabQuestion = () => {
         return (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-12 mb-6 text-center shadow-lg">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">What is the reading?</p>
-                <div className="text-8xl font-bold text-gray-900 dark:text-gray-100 mb-8">
+            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700/50 p-14 mb-8 text-center shadow-sm">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">What is the reading?</p>
+                <div className="text-9xl font-semibold text-slate-900 dark:text-slate-100 mb-8">
                     {currentItem.question}
                 </div>
             </div>
@@ -274,26 +274,26 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
             {/* Header */}
-            <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-                <div className="max-w-4xl mx-auto px-4 py-4">
-                    <div className="flex items-center justify-between mb-3">
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200/80 dark:border-slate-800">
+                <div className="max-w-4xl mx-auto px-4 py-5">
+                    <div className="flex items-center justify-between mb-4">
                         <button
                             onClick={handleExit}
-                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                            className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
                             aria-label="Exit lesson"
                         >
-                            <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                            <X className="w-6 h-6 text-slate-500 dark:text-slate-400" />
                         </button>
-                        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{lesson.title}</h2>
+                        <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">{lesson.title}</h2>
                         <div className="w-10" />
                     </div>
 
                     {/* Progress Bar */}
-                    <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                    <div className="bg-slate-100 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden">
                         <motion.div
-                            className="bg-gradient-to-r from-indigo-600 to-purple-600 h-full"
+                            className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full"
                             initial={{ width: 0 }}
                             animate={{ width: `${progress}%` }}
                             transition={{ duration: 0.3 }}
@@ -303,7 +303,7 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
             </div>
 
             {/* Quiz Content */}
-            <div className="max-w-2xl mx-auto px-4 py-12">
+            <div className="max-w-2xl mx-auto px-4 py-14">
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={currentIndex}
@@ -322,13 +322,13 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                                     initial={{ opacity: 0, y: -20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -20 }}
-                                    className="bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-300 dark:border-yellow-700 rounded-xl p-6 mb-6"
+                                    className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-2xl p-6 mb-8"
                                 >
                                     <div className="flex items-start gap-3">
-                                        <Lightbulb className="w-6 h-6 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-1" />
+                                        <Lightbulb className="w-6 h-6 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-1" />
                                         <div>
-                                            <p className="font-semibold text-yellow-900 dark:text-yellow-200 mb-2">Grammar Tip</p>
-                                            <p className="text-sm text-yellow-800 dark:text-yellow-300">{currentItem.hint}</p>
+                                            <p className="font-medium text-amber-900 dark:text-amber-200 mb-2">Grammar Tip</p>
+                                            <p className="text-sm text-amber-800 dark:text-amber-300 leading-relaxed">{currentItem.hint}</p>
                                         </div>
                                     </div>
                                 </motion.div>
@@ -337,7 +337,7 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
 
                         {/* Answer Form */}
                         {!showFeedback ? (
-                            <form onSubmit={handleSubmit} className="space-y-4">
+                            <form onSubmit={handleSubmit} className="space-y-5">
                                 <input
                                     ref={inputRef}
                                     type="text"
@@ -345,12 +345,12 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                                     onChange={(e) => setUserAnswer(e.target.value)}
                                     placeholder={currentItem.type === 'grammar' ? "Type the particle (e.g., 'wa', 'wo')" : "Type in romaji (e.g., 'a', 'ka')"}
                                     autoFocus
-                                    className="w-full px-6 py-4 text-2xl text-center border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                                    className="w-full px-8 py-5 text-3xl text-center border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-transparent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
                                 />
                                 <button
                                     type="submit"
                                     disabled={!userAnswer.trim()}
-                                    className="w-full px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-lg font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                                    className="w-full px-8 py-5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xl font-medium rounded-2xl hover:from-emerald-600 hover:to-teal-600 transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
                                 >
                                     Check Answer
                                 </button>
@@ -359,34 +359,34 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className={`rounded-2xl p-8 border-2 ${isCorrect
-                                    ? 'bg-green-50 dark:bg-green-900/30 border-green-300 dark:border-green-700'
-                                    : 'bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700'
+                                className={`rounded-2xl p-8 border ${isCorrect
+                                    ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700/50'
+                                    : 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-700/50'
                                     }`}
                             >
-                                <div className="flex items-center justify-center gap-3 mb-4">
+                                <div className="flex items-center justify-center gap-3 mb-5">
                                     {isCorrect ? (
                                         <>
-                                            <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
-                                            <p className="text-2xl font-bold text-green-900 dark:text-green-200">Correct!</p>
+                                            <CheckCircle2 className="w-9 h-9 text-emerald-600 dark:text-emerald-400" />
+                                            <p className="text-2xl font-semibold text-emerald-900 dark:text-emerald-200">Correct!</p>
                                         </>
                                     ) : (
                                         <>
-                                            <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
-                                            <p className="text-2xl font-bold text-red-900 dark:text-red-200">Incorrect</p>
+                                            <XCircle className="w-9 h-9 text-rose-600 dark:text-rose-400" />
+                                            <p className="text-2xl font-semibold text-rose-900 dark:text-rose-200">Incorrect</p>
                                         </>
                                     )}
                                 </div>
 
                                 {!isCorrect && (
-                                    <p className="text-lg text-gray-700 dark:text-gray-300 mb-6 text-center">
-                                        The correct answer is: <span className="font-bold">{currentItem.answer}</span>
+                                    <p className="text-lg text-slate-700 dark:text-slate-300 mb-6 text-center">
+                                        The correct answer is: <span className="font-semibold">{currentItem.answer}</span>
                                     </p>
                                 )}
 
                                 <button
                                     onClick={handleNext}
-                                    className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-lg font-semibold rounded-xl hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-200 shadow-lg active:scale-95"
+                                    className="w-full flex items-center justify-center gap-2 px-8 py-5 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-lg font-medium rounded-2xl hover:bg-slate-800 dark:hover:bg-slate-200 transition-all duration-300 shadow-md active:scale-[0.98]"
                                 >
                                     Next
                                     <ArrowRight className="w-5 h-5" />

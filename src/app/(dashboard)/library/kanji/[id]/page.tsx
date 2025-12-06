@@ -1,6 +1,6 @@
 import { db } from '../../../../../lib/db';
 import { kanji, userProgress, vocabulary } from '../../../../../lib/db/schema';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
@@ -40,10 +40,10 @@ async function getUserId() {
 }
 
 function getSRSLabel(stage: number): { label: string; color: string } {
-    if (stage === 0) return { label: 'New', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300' };
-    if (stage <= 2) return { label: 'Apprentice', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' };
-    if (stage <= 5) return { label: 'Guru', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' };
-    if (stage <= 7) return { label: 'Master', color: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' };
+    if (stage === 0) return { label: 'New', color: 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300' };
+    if (stage <= 2) return { label: 'Apprentice', color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' };
+    if (stage <= 5) return { label: 'Guru', color: 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300' };
+    if (stage <= 7) return { label: 'Master', color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' };
     return { label: 'Enlightened', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' };
 }
 
@@ -100,26 +100,26 @@ export default async function KanjiDetailPage({ params }: KanjiDetailPageProps) 
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Main Info Card */}
-                <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-8 transition-colors duration-200">
+                <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/50 p-8 transition-colors duration-200">
                     {/* Character Display */}
-                    <div className="text-center mb-8">
-                        <div className="inline-block p-8 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-2xl mb-4">
-                            <span className="text-9xl font-bold text-gray-900 dark:text-gray-100">
+                    <div className="text-center mb-10">
+                        <div className="inline-block p-10 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-3xl mb-5">
+                            <span className="text-9xl font-semibold text-slate-900 dark:text-slate-100">
                                 {kanjiItem.character}
                             </span>
                         </div>
                         <div className="flex items-center justify-center gap-3 flex-wrap">
-                            <span className="px-4 py-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-sm font-semibold">
+                            <span className="px-4 py-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-full text-sm font-medium">
                                 {kanjiItem.jlptLevel}
                             </span>
                             {kanjiItem.strokeCount && (
-                                <span className="flex items-center gap-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm">
+                                <span className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full text-sm">
                                     <Pencil className="w-4 h-4" />
                                     {kanjiItem.strokeCount} strokes
                                 </span>
                             )}
                             {srsInfo && (
-                                <span className={`px-4 py-2 rounded-full text-sm font-semibold ${srsInfo.color}`}>
+                                <span className={`px-4 py-2 rounded-full text-sm font-medium ${srsInfo.color}`}>
                                     {srsInfo.label}
                                 </span>
                             )}
@@ -127,16 +127,16 @@ export default async function KanjiDetailPage({ params }: KanjiDetailPageProps) 
                     </div>
 
                     {/* Meanings */}
-                    <div className="mb-6">
-                        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
-                            <BookOpen className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                    <div className="mb-8">
+                        <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+                            <BookOpen className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                             Meanings
                         </h2>
                         <div className="flex flex-wrap gap-2">
                             {kanjiItem.meanings.map((meaning, idx) => (
                                 <span
                                     key={idx}
-                                    className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-xl text-lg"
+                                    className="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-xl text-lg"
                                 >
                                     {meaning}
                                 </span>
@@ -145,11 +145,11 @@ export default async function KanjiDetailPage({ params }: KanjiDetailPageProps) 
                     </div>
 
                     {/* Readings */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         {/* Onyomi */}
                         {kanjiItem.onyomi && kanjiItem.onyomi.length > 0 && (
                             <div>
-                                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
+                                <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
                                     <Volume2 className="w-4 h-4" />
                                     音読み (On'yomi) - Chinese Reading
                                 </h3>
@@ -157,7 +157,7 @@ export default async function KanjiDetailPage({ params }: KanjiDetailPageProps) 
                                     {kanjiItem.onyomi.map((reading, idx) => (
                                         <span
                                             key={idx}
-                                            className="px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg text-lg font-medium"
+                                            className="px-4 py-2 bg-rose-100 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 rounded-xl text-lg font-medium"
                                         >
                                             {reading}
                                         </span>
@@ -169,7 +169,7 @@ export default async function KanjiDetailPage({ params }: KanjiDetailPageProps) 
                         {/* Kunyomi */}
                         {kanjiItem.kunyomi && kanjiItem.kunyomi.length > 0 && (
                             <div>
-                                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
+                                <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
                                     <Volume2 className="w-4 h-4" />
                                     訓読み (Kun'yomi) - Japanese Reading
                                 </h3>
@@ -177,7 +177,7 @@ export default async function KanjiDetailPage({ params }: KanjiDetailPageProps) 
                                     {kanjiItem.kunyomi.map((reading, idx) => (
                                         <span
                                             key={idx}
-                                            className="px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-lg font-medium"
+                                            className="px-4 py-2 bg-teal-100 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300 rounded-xl text-lg font-medium"
                                         >
                                             {reading}
                                         </span>
@@ -190,15 +190,15 @@ export default async function KanjiDetailPage({ params }: KanjiDetailPageProps) 
                     {/* Radicals */}
                     {kanjiItem.radicals && kanjiItem.radicals.length > 0 && (
                         <div>
-                            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
-                                <Layers className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                            <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+                                <Layers className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                                 Radicals
                             </h2>
                             <div className="flex flex-wrap gap-2">
                                 {kanjiItem.radicals.map((radical, idx) => (
                                     <span
                                         key={idx}
-                                        className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-xl text-xl"
+                                        className="px-5 py-3 bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-xl text-xl"
                                     >
                                         {radical}
                                     </span>
@@ -212,26 +212,26 @@ export default async function KanjiDetailPage({ params }: KanjiDetailPageProps) 
                 <div className="space-y-6">
                     {/* SRS Progress Card */}
                     {progress && (
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Your Progress</h3>
-                            <div className="space-y-3">
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/50 p-6 transition-colors duration-200">
+                            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-5">Your Progress</h3>
+                            <div className="space-y-4">
                                 <div className="flex justify-between">
-                                    <span className="text-gray-600 dark:text-gray-400">SRS Stage</span>
-                                    <span className="font-semibold text-gray-900 dark:text-gray-100">{progress.srsStage} / 8</span>
+                                    <span className="text-slate-600 dark:text-slate-400">SRS Stage</span>
+                                    <span className="font-medium text-slate-900 dark:text-slate-100">{progress.srsStage} / 8</span>
                                 </div>
-                                <div className="bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                                <div className="bg-slate-100 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden">
                                     <div
-                                        className="bg-gradient-to-r from-indigo-600 to-purple-600 h-full"
+                                        className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full"
                                         style={{ width: `${(progress.srsStage / 8) * 100}%` }}
                                     />
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600 dark:text-gray-400">Correct</span>
-                                    <span className="text-green-600 dark:text-green-400 font-medium">{progress.correctCount}</span>
+                                    <span className="text-slate-600 dark:text-slate-400">Correct</span>
+                                    <span className="text-emerald-600 dark:text-emerald-400 font-medium">{progress.correctCount}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600 dark:text-gray-400">Incorrect</span>
-                                    <span className="text-red-600 dark:text-red-400 font-medium">{progress.incorrectCount}</span>
+                                    <span className="text-slate-600 dark:text-slate-400">Incorrect</span>
+                                    <span className="text-rose-600 dark:text-rose-400 font-medium">{progress.incorrectCount}</span>
                                 </div>
                             </div>
                         </div>
@@ -239,24 +239,24 @@ export default async function KanjiDetailPage({ params }: KanjiDetailPageProps) 
 
                     {/* Example Words */}
                     {vocabWithKanji.length > 0 && (
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Example Words</h3>
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/50 p-6 transition-colors duration-200">
+                            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-5">Example Words</h3>
                             <div className="space-y-3">
                                 {vocabWithKanji.map(vocab => (
                                     <Link
                                         key={vocab.id}
                                         href={`/library/vocabulary/${vocab.id}`}
-                                        className="block p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors group"
+                                        className="block p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors group"
                                     >
                                         <div className="flex justify-between items-start">
                                             <div>
-                                                <p className="text-lg font-bold text-gray-900 dark:text-gray-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                                                <p className="text-lg font-medium text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
                                                     {vocab.writing}
                                                 </p>
-                                                <p className="text-sm text-gray-600 dark:text-gray-400">{vocab.reading}</p>
-                                                <p className="text-sm text-gray-500 dark:text-gray-500">{vocab.meaning}</p>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400">{vocab.reading}</p>
+                                                <p className="text-sm text-slate-500 dark:text-slate-500">{vocab.meaning}</p>
                                             </div>
-                                            <ArrowRight className="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
+                                            <ArrowRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400" />
                                         </div>
                                     </Link>
                                 ))}
@@ -266,14 +266,14 @@ export default async function KanjiDetailPage({ params }: KanjiDetailPageProps) 
 
                     {/* Official Example Words from Kanji data */}
                     {kanjiItem.exampleWords && kanjiItem.exampleWords.length > 0 && (
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">More Examples</h3>
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/50 p-6 transition-colors duration-200">
+                            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-5">More Examples</h3>
                             <div className="space-y-3">
                                 {kanjiItem.exampleWords.map((example, idx) => (
-                                    <div key={idx} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                                        <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{example.word}</p>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400">{example.reading}</p>
-                                        <p className="text-sm text-gray-500 dark:text-gray-500">{example.meaning}</p>
+                                    <div key={idx} className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+                                        <p className="text-lg font-medium text-slate-900 dark:text-slate-100">{example.word}</p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">{example.reading}</p>
+                                        <p className="text-sm text-slate-600 dark:text-slate-400">{example.meaning}</p>
                                     </div>
                                 ))}
                             </div>

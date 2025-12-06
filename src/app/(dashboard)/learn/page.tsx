@@ -3,7 +3,7 @@ import { courses, userProfiles } from '../../../lib/db/schema';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { Flame, Trophy, Zap, ArrowRight, BookOpen } from 'lucide-react';
+import { Flame, Trophy, Zap, ArrowRight, BookOpen, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { eq } from 'drizzle-orm';
 
@@ -78,76 +78,76 @@ export default async function LearnPage() {
     return (
         <div className="max-w-7xl mx-auto">
             {/* Stats Bar */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                 {/* Streak Counter */}
-                <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-2xl border-2 border-orange-200 dark:border-orange-800 p-6 transition-colors duration-200">
+                <div className="group bg-gradient-to-br from-rose-50 to-orange-50 dark:from-rose-900/20 dark:to-orange-900/20 rounded-2xl border border-rose-200/50 dark:border-rose-800/50 p-8 transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg min-h-[140px]">
                     <div className="flex items-center gap-4">
                         <div className="flex-shrink-0">
-                            <Flame className="w-12 h-12 text-orange-500 animate-pulse" />
+                            <Flame className="w-12 h-12 text-rose-400 animate-pulse" />
                         </div>
                         <div>
-                            <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{userStreak}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Day Streak 🔥</p>
+                            <p className="text-4xl font-semibold text-slate-900 dark:text-slate-100">{userStreak}</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Day Streak 🔥</p>
                         </div>
                     </div>
                 </div>
 
                 {/* XP Total */}
-                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-2xl border-2 border-indigo-200 dark:border-indigo-800 p-6 transition-colors duration-200">
+                <div className="group bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl border border-emerald-200/50 dark:border-emerald-800/50 p-8 transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg min-h-[140px]">
                     <div className="flex items-center gap-4">
                         <div className="flex-shrink-0">
-                            <Zap className="w-12 h-12 text-indigo-500 dark:text-indigo-400" />
+                            <Zap className="w-12 h-12 text-emerald-500 dark:text-emerald-400" />
                         </div>
                         <div>
-                            <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{userXp}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Total XP</p>
+                            <p className="text-4xl font-semibold text-slate-900 dark:text-slate-100">{userXp}</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Total XP</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Level */}
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl border-2 border-green-200 dark:border-green-800 p-6 transition-colors duration-200">
+                <div className="group bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-900/20 dark:to-cyan-900/20 rounded-2xl border border-teal-200/50 dark:border-teal-800/50 p-8 transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg min-h-[140px]">
                     <div className="flex items-center gap-4">
                         <div className="flex-shrink-0">
-                            <Trophy className="w-12 h-12 text-green-500 dark:text-green-400" />
+                            <Trophy className="w-12 h-12 text-teal-500 dark:text-teal-400" />
                         </div>
                         <div>
-                            <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{userLevel}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Level</p>
+                            <p className="text-4xl font-semibold text-slate-900 dark:text-slate-100">{userLevel}</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Level</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Continue Learning CTA */}
-            <div className="mb-8">
+            <div className="mb-10">
                 <Link
                     href="/learn/n5"
-                    className="group block bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-500 dark:to-purple-500 rounded-2xl p-6 hover:from-indigo-700 hover:to-purple-700 dark:hover:from-indigo-600 dark:hover:to-purple-600 transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+                    className="group block bg-gradient-to-r from-emerald-500 to-teal-500 dark:from-emerald-600 dark:to-teal-600 rounded-2xl p-8 hover:from-emerald-600 hover:to-teal-600 dark:hover:from-emerald-500 dark:hover:to-teal-500 transition-all duration-300 shadow-md hover:shadow-xl hover:translate-y-[-2px] active:scale-[0.99]"
                 >
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="flex items-center justify-center w-14 h-14 bg-white/20 rounded-xl">
-                                <BookOpen className="w-7 h-7 text-white" />
+                        <div className="flex items-center gap-5">
+                            <div className="flex items-center justify-center w-16 h-16 bg-white/20 rounded-2xl">
+                                <BookOpen className="w-8 h-8 text-white" />
                             </div>
                             <div>
-                                <h3 className="text-2xl font-bold text-white mb-1">
+                                <h3 className="text-2xl font-semibold text-white mb-1">
                                     Continue Learning
                                 </h3>
-                                <p className="text-indigo-100">
+                                <p className="text-emerald-100">
                                     Pick up where you left off in Unit 1
                                 </p>
                             </div>
                         </div>
-                        <ArrowRight className="w-8 h-8 text-white group-hover:translate-x-2 transition-transform duration-200" />
+                        <ArrowRight className="w-8 h-8 text-white group-hover:translate-x-2 transition-transform duration-300" />
                     </div>
                 </Link>
             </div>
 
             {/* Header */}
-            <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Your Courses</h2>
-                <p className="text-gray-600 dark:text-gray-400">Track your progress across all JLPT levels</p>
+            <div className="mb-8">
+                <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100 mb-2">Your Courses</h2>
+                <p className="text-slate-600 dark:text-slate-400">Track your progress across all JLPT levels</p>
             </div>
 
             {/* Courses with Progress Bars */}
@@ -158,17 +158,17 @@ export default async function LearnPage() {
                         href={`/learn/${course.level.toLowerCase()}`}
                         className="group"
                     >
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6 hover:border-indigo-500 dark:hover:border-indigo-400 hover:shadow-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/50 p-8 hover:border-emerald-400 dark:hover:border-emerald-500/50 hover:shadow-lg transition-all duration-300 hover:translate-y-[-2px] active:scale-[0.99]">
                             {/* Course Icon & Title */}
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl group-hover:scale-110 transition-transform duration-200">
-                                    <BookOpen className="w-7 h-7 text-white" />
+                            <div className="flex items-center gap-5 mb-5">
+                                <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl group-hover:scale-105 transition-transform duration-300">
+                                    <BookOpen className="w-8 h-8 text-white" />
                                 </div>
                                 <div className="flex-1">
-                                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                    <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                                         {course.title}
                                     </h3>
-                                    <span className="inline-block mt-1 px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-xs font-semibold">
+                                    <span className="inline-block mt-1 px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-full text-xs font-semibold">
                                         JLPT {course.level}
                                     </span>
                                 </div>
@@ -176,7 +176,7 @@ export default async function LearnPage() {
 
                             {/* Description */}
                             {course.description && (
-                                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
+                                <p className="text-slate-600 dark:text-slate-400 text-sm mb-5 line-clamp-2 leading-relaxed">
                                     {course.description}
                                 </p>
                             )}
@@ -184,14 +184,14 @@ export default async function LearnPage() {
                             {/* Progress Bar */}
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-600 dark:text-gray-400">Progress</span>
-                                    <span className="font-semibold text-gray-900 dark:text-gray-100">
+                                    <span className="text-slate-600 dark:text-slate-400">Progress</span>
+                                    <span className="font-medium text-slate-900 dark:text-slate-100">
                                         {course.completedUnits} / {course.totalUnits} units
                                     </span>
                                 </div>
-                                <div className="bg-gray-100 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+                                <div className="bg-slate-100 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden">
                                     <div
-                                        className="bg-gradient-to-r from-indigo-600 to-purple-600 h-full transition-all duration-500"
+                                        className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full transition-all duration-500 rounded-full"
                                         style={{ width: `${course.progressPercentage}%` }}
                                     />
                                 </div>
@@ -203,12 +203,12 @@ export default async function LearnPage() {
 
             {/* Empty State */}
             {coursesWithProgress.length === 0 && (
-                <div className="text-center py-12">
-                    <BookOpen className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                <div className="text-center py-16">
+                    <Sparkles className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
                         No Courses Available
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-400">
+                    <p className="text-slate-600 dark:text-slate-400">
                         Courses will appear here once they are added to the database.
                     </p>
                 </div>

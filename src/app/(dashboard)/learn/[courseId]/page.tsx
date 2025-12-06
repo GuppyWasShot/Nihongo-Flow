@@ -1,9 +1,12 @@
 import { db } from '../../../../lib/db';
-import { courses, units, lessons, type Unit, type Lesson } from '../../../../lib/db/schema';
+import { courses, units, lessons } from '../../../../lib/db/schema';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+import { redirect, notFound } from 'next/navigation';
 import { eq } from 'drizzle-orm';
-import { BookOpen, Lock, CheckCircle2, Circle, ChevronRight, Home } from 'lucide-react';
+import { BookOpen, ChevronRight, Lock, CheckCircle, Play } from 'lucide-react';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { Breadcrumb } from '../../../../components/Breadcrumb';
 
 interface CoursePageProps {
     params: Promise<{
@@ -11,182 +14,207 @@ interface CoursePageProps {
     }>;
 }
 
+async function getUserId() {
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                get(name: string) {
+                    return cookieStore.get(name)?.value;
+                },
+                set(name: string, value: string, options: any) {
+                    cookieStore.set({ name, value, ...options });
+                },
+                remove(name: string, options: any) {
+                    cookieStore.set({ name, value: '', ...options });
+                },
+            },
+        }
+    );
+
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        redirect('/login');
+    }
+
+    return user.id;
+}
+
 export default async function CoursePage({ params }: CoursePageProps) {
-    // In Next.js 15, params is a Promise and must be awaited
     const { courseId } = await params;
+    await getUserId();
 
-    // Fetch course by level (e.g., "n5")
-    const courseLevel = courseId.toUpperCase();
-
-    const [course] = await db
-        .select()
-        .from(courses)
-        .where(eq(courses.level, courseLevel));
+    // Fetch course by level (e.g., 'n5', 'n4')
+    const [course] = await db.select().from(courses).where(eq(courses.level, courseId.toUpperCase()));
 
     if (!course) {
         notFound();
     }
 
-    // Fetch all units for this course with their lessons
-    const courseUnits = await db
-        .select()
-        .from(units)
-        .where(eq(units.courseId, course.id))
-        .orderBy(units.order);
+    // Fetch units for this course
+    const courseUnits = await db.select().from(units).where(eq(units.courseId, course.id));
 
     // Fetch lessons for all units
-    const allLessons = await db
-        .select()
-        .from(lessons)
-        .where(
-            eq(lessons.unitId, courseUnits[0]?.id) // For now, just get lessons from first unit
-        )
-        .orderBy(lessons.order);
+    const unitIds = courseUnits.map(u => u.id);
+    const allLessons = unitIds.length > 0
+        ? await db.select().from(lessons).where(eq(lessons.unitId, courseUnits[0].id))
+        : [];
 
-    // TODO: Fetch user progress to determine locked/unlocked status
-    // For now, only Unit 1 is unlocked
-    const unitsWithStatus = courseUnits.map((unit, index) => ({
+    // Group lessons by unit
+    const lessonsByUnit = new Map<number, typeof allLessons>();
+    courseUnits.forEach(unit => {
+        lessonsByUnit.set(unit.id, allLessons.filter(l => l.unitId === unit.id));
+    });
+
+    // Calculate mock progress (TODO: Use actual user progress)
+    const unitsWithProgress = courseUnits.map((unit, idx) => ({
         ...unit,
-        isUnlocked: index === 0, // Only first unit is unlocked for now
-        lessonsCompleted: 0,
-        totalLessons: index === 0 ? allLessons.length : 0,
+        isUnlocked: idx === 0, // Only first unit unlocked for now
+        isComplete: false,
+        completedLessons: 0,
+        totalLessons: lessonsByUnit.get(unit.id)?.length || 0,
     }));
 
-    // Calculate overall progress
-    const totalUnits = unitsWithStatus.length;
-    const completedUnits = 0; // TODO: Calculate from user progress
-    const progressPercentage = totalUnits > 0 ? (completedUnits / totalUnits) * 100 : 0;
-
     return (
-        <div className="max-w-6xl mx-auto">
-            {/* Breadcrumb */}
-            <nav className="flex items-center gap-2 text-sm mb-6">
-                <Link
-                    href="/learn"
-                    className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                >
-                    <Home className="w-4 h-4" />
-                    <span>Dashboard</span>
-                </Link>
-                <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                <span className="text-gray-900 dark:text-gray-100 font-medium">{course.title}</span>
-            </nav>
+        <div className="max-w-4xl mx-auto">
+            <Breadcrumb items={[
+                { label: 'Learn', href: '/learn' },
+                { label: course.title }
+            ]} />
 
             {/* Course Header */}
-            <div className="mb-8">
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl">
-                        <BookOpen className="w-6 h-6 text-white" />
+            <div className="bg-gradient-to-br from-emerald-500 to-teal-500 rounded-3xl p-10 mb-10 text-white shadow-lg">
+                <div className="flex items-start gap-6">
+                    <div className="flex items-center justify-center w-20 h-20 bg-white/20 rounded-2xl">
+                        <BookOpen className="w-10 h-10 text-white" />
                     </div>
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{course.title}</h1>
-                        <p className="text-gray-600 dark:text-gray-400">{course.description}</p>
+                    <div className="flex-1">
+                        <h1 className="text-4xl font-semibold mb-2">{course.title}</h1>
+                        <p className="text-emerald-100 text-lg mb-6 leading-relaxed">{course.description}</p>
+                        <div className="flex items-center gap-6">
+                            <span className="px-4 py-2 bg-white/20 rounded-full text-sm font-medium">
+                                {courseUnits.length} Units
+                            </span>
+                            <span className="px-4 py-2 bg-white/20 rounded-full text-sm font-medium">
+                                JLPT {course.level}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
                 {/* Progress Bar */}
-                <div className="bg-gray-100 dark:bg-gray-800 rounded-full h-3 overflow-hidden">
-                    <div
-                        className="bg-gradient-to-r from-indigo-600 to-purple-600 h-full transition-all duration-500"
-                        style={{ width: `${progressPercentage}%` }}
-                    />
+                <div className="mt-8">
+                    <div className="flex items-center justify-between text-sm mb-2">
+                        <span className="text-emerald-100">Course Progress</span>
+                        <span className="font-medium">0%</span>
+                    </div>
+                    <div className="bg-white/20 rounded-full h-2.5 overflow-hidden">
+                        <div
+                            className="bg-white h-full rounded-full"
+                            style={{ width: '0%' }}
+                        />
+                    </div>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                    {completedUnits} of {totalUnits} units completed
-                </p>
             </div>
 
             {/* Units List */}
             <div className="space-y-6">
-                {unitsWithStatus.map((unit, unitIndex) => (
+                {unitsWithProgress.map((unit, unitIdx) => (
                     <div
                         key={unit.id}
-                        className={`bg-white dark:bg-gray-800 rounded-2xl border-2 p-6 transition-all duration-200 ${unit.isUnlocked
-                            ? 'border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-lg'
-                            : 'border-gray-200 dark:border-gray-700 opacity-60'
+                        className={`bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/50 overflow-hidden transition-all duration-300 ${unit.isUnlocked ? 'hover:shadow-lg hover:border-emerald-300 dark:hover:border-emerald-600/50' : 'opacity-70'
                             }`}
                     >
                         {/* Unit Header */}
-                        <div className="flex items-start justify-between mb-4">
-                            <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                        Unit {unit.order}: {unit.title}
-                                    </h2>
-                                    {unit.isUnlocked ? (
-                                        <CheckCircle2 className="w-6 h-6 text-green-500" />
-                                    ) : (
-                                        <Lock className="w-6 h-6 text-gray-400 dark:text-gray-500" />
-                                    )}
+                        <div className="p-6 border-b border-slate-100 dark:border-slate-700">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className={`flex items-center justify-center w-12 h-12 rounded-xl ${unit.isComplete
+                                            ? 'bg-emerald-100 dark:bg-emerald-900/30'
+                                            : unit.isUnlocked
+                                                ? 'bg-emerald-100 dark:bg-emerald-900/30'
+                                                : 'bg-slate-100 dark:bg-slate-700'
+                                        }`}>
+                                        {unit.isComplete ? (
+                                            <CheckCircle className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                                        ) : unit.isUnlocked ? (
+                                            <span className="text-xl font-semibold text-emerald-600 dark:text-emerald-400">{unitIdx + 1}</span>
+                                        ) : (
+                                            <Lock className="w-5 h-5 text-slate-400 dark:text-slate-500" />
+                                        )}
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">{unit.title}</h3>
+                                        {unit.description && (
+                                            <p className="text-sm text-slate-500 dark:text-slate-400">{unit.description}</p>
+                                        )}
+                                    </div>
                                 </div>
-                                {unit.description && (
-                                    <p className="text-gray-600 dark:text-gray-400 text-sm">{unit.description}</p>
-                                )}
-                            </div>
-
-                            {/* Unit Progress */}
-                            <div className="text-right ml-4">
-                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                    {unit.lessonsCompleted} / {unit.totalLessons}
-                                </p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">lessons</p>
+                                <div className="text-sm text-slate-500 dark:text-slate-400">
+                                    {unit.completedLessons} / {unit.totalLessons} lessons
+                                </div>
                             </div>
                         </div>
 
-                        {/* Locked Overlay */}
-                        {!unit.isUnlocked && (
-                            <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700">
-                                <Lock className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
-                                    Complete Unit {unitIndex} to unlock this unit
-                                </p>
-                            </div>
-                        )}
+                        {/* Lessons List */}
+                        {unit.isUnlocked && (
+                            <div className="divide-y divide-slate-100 dark:divide-slate-700">
+                                {lessonsByUnit.get(unit.id)?.map((lesson, lessonIdx) => {
+                                    const isLessonUnlocked = lessonIdx === 0; // Only first lesson unlocked
 
-                        {/* Lessons Grid */}
-                        {unit.isUnlocked && unit.totalLessons > 0 && (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-4">
-                                {allLessons.map((lesson, lessonIndex) => (
-                                    <Link
-                                        key={lesson.id}
-                                        href={`/learn/${courseId}/unit/${unit.id}/lesson/${lesson.id}`}
-                                        className="group"
-                                    >
-                                        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-xl p-4 border-2 border-transparent hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-md transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <Circle className="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
-                                                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                                    {lessonIndex + 1}
-                                                </span>
+                                    return (
+                                        <Link
+                                            key={lesson.id}
+                                            href={isLessonUnlocked ? `/learn/${courseId}/unit/${unit.id}/lesson/${lesson.id}` : '#'}
+                                            className={`flex items-center justify-between px-6 py-5 transition-colors group ${isLessonUnlocked
+                                                    ? 'hover:bg-emerald-50 dark:hover:bg-emerald-900/10 cursor-pointer'
+                                                    : 'opacity-60 cursor-not-allowed'
+                                                }`}
+                                        >
+                                            <div className="flex items-center gap-4">
+                                                <div className={`flex items-center justify-center w-10 h-10 rounded-xl ${isLessonUnlocked
+                                                        ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400'
+                                                        : 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500'
+                                                    }`}>
+                                                    {isLessonUnlocked ? (
+                                                        <Play className="w-4 h-4" />
+                                                    ) : (
+                                                        <Lock className="w-4 h-4" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className={`font-medium ${isLessonUnlocked
+                                                            ? 'text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
+                                                            : 'text-slate-500 dark:text-slate-400'
+                                                        }`}>
+                                                        {lesson.title}
+                                                    </p>
+                                                    <p className="text-sm text-slate-500 dark:text-slate-400 capitalize">{lesson.type.replace('_', ' ')}</p>
+                                                </div>
                                             </div>
-                                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-2">
-                                                {lesson.title}
-                                            </p>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Empty State for No Lessons */}
-                        {unit.isUnlocked && unit.totalLessons === 0 && (
-                            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                                <p className="text-sm">No lessons available yet</p>
+                                            {isLessonUnlocked && (
+                                                <ChevronRight className="w-5 h-5 text-slate-400 dark:text-slate-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
+                                            )}
+                                        </Link>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
                 ))}
             </div>
 
-            {/* Empty State */}
             {courseUnits.length === 0 && (
-                <div className="text-center py-12">
-                    <BookOpen className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                        No Units Available
+                <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/50">
+                    <BookOpen className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+                    <h3 className="text-xl font-medium text-slate-900 dark:text-slate-100 mb-2">
+                        Coming Soon
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-400">
-                        Units will appear here once they are added to this course.
+                    <p className="text-slate-600 dark:text-slate-400">
+                        Units for this course are being prepared.
                     </p>
                 </div>
             )}

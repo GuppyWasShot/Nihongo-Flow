@@ -1,5 +1,5 @@
-import { ChevronRight, Home } from 'lucide-react';
 import Link from 'next/link';
+import { ChevronRight, Home } from 'lucide-react';
 
 interface BreadcrumbItem {
     label: string;
@@ -12,49 +12,38 @@ interface BreadcrumbProps {
 
 /**
  * Breadcrumb navigation component
- * 
- * @param items - Array of breadcrumb items with label and optional href
- * Last item is treated as current page (no link)
- * 
- * @example
- * <Breadcrumb items={[
- *   { label: 'Dashboard', href: '/learn' },
- *   { label: 'N5 Course', href: '/learn/n5' },
- *   { label: 'Unit 1' }
- * ]} />
+ * Shows hierarchical navigation path with clickable links
  */
 export function Breadcrumb({ items }: BreadcrumbProps) {
     return (
-        <nav className="flex items-center gap-2 text-sm mb-6" aria-label="Breadcrumb">
-            <Link
-                href="/learn"
-                className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-            >
-                <Home className="w-4 h-4" />
-                <span className="hidden sm:inline">Dashboard</span>
-            </Link>
-
-            {items.map((item, index) => {
-                const isLast = index === items.length - 1;
-
-                return (
-                    <div key={index} className="flex items-center gap-2">
-                        <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
-                        {isLast || !item.href ? (
-                            <span className="text-gray-900 dark:text-gray-100 font-medium truncate max-w-[150px] sm:max-w-none">
-                                {item.label}
-                            </span>
-                        ) : (
+        <nav aria-label="Breadcrumb" className="mb-6">
+            <ol className="flex items-center gap-2 text-sm">
+                <li>
+                    <Link
+                        href="/learn"
+                        className="flex items-center gap-1 text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                    >
+                        <Home className="w-4 h-4" />
+                    </Link>
+                </li>
+                {items.map((item, idx) => (
+                    <li key={idx} className="flex items-center gap-2">
+                        <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500" />
+                        {item.href ? (
                             <Link
                                 href={item.href}
-                                className="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors truncate max-w-[100px] sm:max-w-none"
+                                className="text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                             >
                                 {item.label}
                             </Link>
+                        ) : (
+                            <span className="text-slate-900 dark:text-slate-100 font-medium">
+                                {item.label}
+                            </span>
                         )}
-                    </div>
-                );
-            })}
+                    </li>
+                ))}
+            </ol>
         </nav>
     );
 }

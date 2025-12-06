@@ -30,17 +30,17 @@ export function MobileBottomNav() {
     };
 
     return (
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 transition-colors duration-200">
-            <div className="flex items-center justify-around py-2 px-4 safe-area-pb">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border-t border-slate-200/80 dark:border-slate-800 transition-colors duration-200 safe-area-pb">
+            <div className="flex items-center justify-around py-2 px-4">
                 {navItems.map((item) => {
                     const active = isActive(item.href);
                     return (
                         <Link
                             key={item.href}
                             href={item.href}
-                            className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl min-w-[64px] transition-all duration-200 ${active
-                                    ? 'text-indigo-600 dark:text-indigo-400'
-                                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl min-w-[68px] transition-all duration-200 ${active
+                                    ? 'text-emerald-600 dark:text-emerald-400'
+                                    : 'text-slate-500 dark:text-slate-400 active:text-slate-700 dark:active:text-slate-300'
                                 }`}
                         >
                             <item.icon

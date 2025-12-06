@@ -20,7 +20,7 @@ export function ThemeToggle() {
     if (!mounted) {
         return (
             <button
-                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800"
+                className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800"
                 aria-label="Toggle theme"
             >
                 <div className="w-5 h-5" />
@@ -57,7 +57,7 @@ export function ThemeToggle() {
     return (
         <button
             onClick={cycleTheme}
-            className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-200"
+            className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 transition-all duration-200 hover:scale-105 active:scale-95"
             aria-label={getLabel()}
             title={getLabel()}
         >
@@ -79,47 +79,50 @@ export function ThemeToggleWithLabel() {
 
     if (!mounted) {
         return (
-            <div className="flex items-center justify-between py-3">
+            <div className="flex items-center justify-between py-4">
                 <div>
-                    <p className="font-medium text-gray-900 dark:text-gray-100">Theme</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Choose your preferred theme</p>
+                    <p className="font-medium text-slate-900 dark:text-slate-100">Theme</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Choose your preferred theme</p>
                 </div>
-                <div className="w-32 h-10 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse" />
+                <div className="w-36 h-11 bg-slate-200 dark:bg-slate-700 rounded-xl animate-pulse" />
             </div>
         );
     }
 
     return (
-        <div className="flex items-center justify-between py-3">
+        <div className="flex items-center justify-between py-4">
             <div>
-                <p className="font-medium text-gray-900 dark:text-gray-100">Theme</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Choose your preferred theme</p>
+                <p className="font-medium text-slate-900 dark:text-slate-100">Theme</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400">Choose your preferred theme</p>
             </div>
-            <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
                 <button
                     onClick={() => setTheme('light')}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'light'
-                            ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'light'
+                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                         }`}
+                    aria-label="Light mode"
                 >
                     <Sun className="w-4 h-4" />
                 </button>
                 <button
                     onClick={() => setTheme('dark')}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'dark'
-                            ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'dark'
+                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                         }`}
+                    aria-label="Dark mode"
                 >
                     <Moon className="w-4 h-4" />
                 </button>
                 <button
                     onClick={() => setTheme('system')}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'system'
-                            ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'system'
+                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                         }`}
+                    aria-label="System theme"
                 >
                     <Monitor className="w-4 h-4" />
                 </button>
