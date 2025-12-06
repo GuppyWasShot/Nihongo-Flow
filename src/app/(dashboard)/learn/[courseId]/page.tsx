@@ -7,6 +7,7 @@ import { eq } from 'drizzle-orm';
 import { BookOpen, ChevronRight, Lock, CheckCircle, Play } from 'lucide-react';
 import Link from 'next/link';
 import { Breadcrumb } from '../../../../components/Breadcrumb';
+import { TestOutButton } from './TestOutButton';
 
 interface CoursePageProps {
     params: Promise<{
@@ -41,7 +42,7 @@ async function getUserId() {
 
 export default async function CoursePage({ params }: CoursePageProps) {
     const { courseId } = await params;
-    await getUserId();
+    const userId = await getUserId();
 
     // Fetch course by level (e.g., 'n5', 'n4')
     const [course] = await db.select().from(courses).where(eq(courses.level, courseId.toUpperCase()));
@@ -50,14 +51,34 @@ export default async function CoursePage({ params }: CoursePageProps) {
         notFound();
     }
 
-    // Fetch units for this course
-    const courseUnits = await db.select().from(units).where(eq(units.courseId, course.id));
+    // Fetch units for this course (ordered by order)
+    const courseUnits = await db
+        .select()
+        .from(units)
+        .where(eq(units.courseId, course.id))
+        .orderBy(units.order);
 
     // Fetch lessons for all units
     const unitIds = courseUnits.map(u => u.id);
+
+    // Import dependencies
+    const { inArray } = await import('drizzle-orm');
+    const { userProgress } = await import('../../../../lib/db/schema');
+
     const allLessons = unitIds.length > 0
-        ? await db.select().from(lessons).where(eq(lessons.unitId, courseUnits[0].id))
+        ? await db.select().from(lessons).where(inArray(lessons.unitId, unitIds))
         : [];
+
+    // Fetch user progress for lessons
+    const lessonIds = allLessons.map(l => l.id);
+    const userLessonProgress = lessonIds.length > 0
+        ? await db.select().from(userProgress).where(
+            inArray(userProgress.itemId, lessonIds)
+        ).then(rows => rows.filter(r => r.userId === userId && r.itemType === 'lesson'))
+        : [];
+
+    // Create a set of completed lesson IDs for quick lookup
+    const completedLessonIds = new Set(userLessonProgress.map(p => p.itemId));
 
     // Group lessons by unit
     const lessonsByUnit = new Map<number, typeof allLessons>();
@@ -65,14 +86,33 @@ export default async function CoursePage({ params }: CoursePageProps) {
         lessonsByUnit.set(unit.id, allLessons.filter(l => l.unitId === unit.id));
     });
 
-    // Calculate mock progress (TODO: Use actual user progress)
-    const unitsWithProgress = courseUnits.map((unit, idx) => ({
-        ...unit,
-        isUnlocked: idx === 0, // Only first unit unlocked for now
-        isComplete: false,
-        completedLessons: 0,
-        totalLessons: lessonsByUnit.get(unit.id)?.length || 0,
-    }));
+    // Calculate progress - a unit is unlocked if:
+    // 1. It's the first unit (idx === 0), OR
+    // 2. All lessons from the previous unit are completed (have progress entries)
+    const unitsWithProgress = courseUnits.map((unit, idx) => {
+        const unitLessons = lessonsByUnit.get(unit.id) || [];
+        const completedCount = unitLessons.filter(l => completedLessonIds.has(l.id)).length;
+        const totalLessons = unitLessons.length;
+        const isComplete = totalLessons > 0 && completedCount === totalLessons;
+
+        // Check if previous unit's lessons are all completed
+        let isUnlocked = idx === 0; // First unit always unlocked
+        if (idx > 0) {
+            const prevUnit = courseUnits[idx - 1];
+            const prevUnitLessons = lessonsByUnit.get(prevUnit.id) || [];
+            const prevUnitCompleted = prevUnitLessons.length > 0 &&
+                prevUnitLessons.every(l => completedLessonIds.has(l.id));
+            isUnlocked = prevUnitCompleted;
+        }
+
+        return {
+            ...unit,
+            isUnlocked,
+            isComplete,
+            completedLessons: completedCount,
+            totalLessons,
+        };
+    });
 
     return (
         <div className="max-w-4xl mx-auto">
@@ -149,8 +189,14 @@ export default async function CoursePage({ params }: CoursePageProps) {
                                         )}
                                     </div>
                                 </div>
-                                <div className="text-sm text-slate-500 dark:text-slate-400">
-                                    {unit.completedLessons} / {unit.totalLessons} lessons
+                                <div className="flex items-center gap-3">
+                                    {/* Test Out button for unlocked units (except first) */}
+                                    {!unit.isUnlocked && unitIdx > 0 && (
+                                        <TestOutButton unitId={unit.id} unitTitle={unit.title} />
+                                    )}
+                                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                                        {unit.completedLessons} / {unit.totalLessons} lessons
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -158,42 +204,41 @@ export default async function CoursePage({ params }: CoursePageProps) {
                         {/* Lessons List */}
                         {unit.isUnlocked && (
                             <div className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {lessonsByUnit.get(unit.id)?.map((lesson, lessonIdx) => {
-                                    const isLessonUnlocked = lessonIdx === 0; // Only first lesson unlocked
+                                {lessonsByUnit.get(unit.id)?.map((lesson) => {
+                                    // All lessons in unlocked units are accessible
+                                    // Completed lessons show checkmark but are still clickable for review
+                                    const isLessonComplete = completedLessonIds.has(lesson.id);
 
                                     return (
                                         <Link
                                             key={lesson.id}
-                                            href={isLessonUnlocked ? `/learn/${courseId}/unit/${unit.id}/lesson/${lesson.id}` : '#'}
-                                            className={`flex items-center justify-between px-6 py-5 transition-colors group ${isLessonUnlocked
-                                                ? 'hover:bg-emerald-50 dark:hover:bg-emerald-900/10 cursor-pointer'
-                                                : 'opacity-60 cursor-not-allowed'
-                                                }`}
+                                            href={`/learn/${courseId}/unit/${unit.id}/lesson/${lesson.id}`}
+                                            className="flex items-center justify-between px-6 py-5 transition-colors group hover:bg-emerald-50 dark:hover:bg-emerald-900/10 cursor-pointer"
                                         >
                                             <div className="flex items-center gap-4">
-                                                <div className={`flex items-center justify-center w-10 h-10 rounded-xl ${isLessonUnlocked
-                                                    ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400'
-                                                    : 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500'
+                                                <div className={`flex items-center justify-center w-10 h-10 rounded-xl ${isLessonComplete
+                                                        ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
+                                                        : 'bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400'
                                                     }`}>
-                                                    {isLessonUnlocked ? (
-                                                        <Play className="w-4 h-4" />
+                                                    {isLessonComplete ? (
+                                                        <CheckCircle className="w-5 h-5" />
                                                     ) : (
-                                                        <Lock className="w-4 h-4" />
+                                                        <Play className="w-4 h-4" />
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <p className={`font-medium ${isLessonUnlocked
-                                                        ? 'text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
-                                                        : 'text-slate-500 dark:text-slate-400'
-                                                        }`}>
+                                                    <p className="font-medium text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
                                                         {lesson.title}
                                                     </p>
-                                                    <p className="text-sm text-slate-500 dark:text-slate-400 capitalize">{lesson.type.replace('_', ' ')}</p>
+                                                    <p className="text-sm text-slate-500 dark:text-slate-400 capitalize">
+                                                        {lesson.type.replace('_', ' ')}
+                                                        {isLessonComplete && (
+                                                            <span className="ml-2 text-emerald-600 dark:text-emerald-400">• Complete</span>
+                                                        )}
+                                                    </p>
                                                 </div>
                                             </div>
-                                            {isLessonUnlocked && (
-                                                <ChevronRight className="w-5 h-5 text-slate-400 dark:text-slate-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
-                                            )}
+                                            <ChevronRight className="w-5 h-5 text-slate-400 dark:text-slate-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
                                         </Link>
                                     );
                                 })}

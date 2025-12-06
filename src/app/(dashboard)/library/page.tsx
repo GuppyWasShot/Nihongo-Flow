@@ -37,11 +37,9 @@ async function getUserId() {
 export default async function LibraryPage() {
     const userId = await getUserId();
 
-    // Fetch kanji (limit 50 for performance)
-    const allKanji = await db.select().from(kanji).limit(50);
-
-    // Fetch vocabulary (limit 50 for performance)
-    const allVocabulary = await db.select().from(vocabulary).limit(50);
+    // Fetch ALL kanji and vocabulary
+    const allKanji = await db.select().from(kanji);
+    const allVocabulary = await db.select().from(vocabulary);
 
     // Fetch user progress for SRS status
     const progress = await db.select()

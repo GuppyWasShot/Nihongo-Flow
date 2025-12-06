@@ -11,6 +11,8 @@ interface LibraryTabsProps {
 }
 
 type SRSFilter = 'all' | 'new' | 'learning' | 'mastered';
+type JLPTFilter = 'all' | 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
+type POSFilter = 'all' | 'noun' | 'verb' | 'adjective' | 'adverb' | 'particle' | 'expression';
 
 function getSRSBadge(srsStage: number | null) {
     if (srsStage === null) return null;
@@ -28,7 +30,26 @@ export default function LibraryTabs({ kanji, vocabulary }: LibraryTabsProps) {
     const [activeTab, setActiveTab] = useState<'kanji' | 'vocabulary'>('kanji');
     const [searchQuery, setSearchQuery] = useState('');
     const [srsFilter, setSrsFilter] = useState<SRSFilter>('all');
+    const [jlptFilter, setJlptFilter] = useState<JLPTFilter>('all');
+    const [posFilter, setPosFilter] = useState<POSFilter>('all');
     const [showFilters, setShowFilters] = useState(false);
+
+    // Get unique JLPT levels from data
+    const jlptLevels = useMemo(() => {
+        const levels = new Set<string>();
+        kanji.forEach(k => levels.add(k.jlptLevel));
+        vocabulary.forEach(v => levels.add(v.jlptLevel));
+        return ['all', ...Array.from(levels).sort()] as JLPTFilter[];
+    }, [kanji, vocabulary]);
+
+    // Get unique parts of speech from vocabulary
+    const partsOfSpeech = useMemo(() => {
+        const pos = new Set<string>();
+        vocabulary.forEach(v => {
+            if (v.partOfSpeech) pos.add(v.partOfSpeech.toLowerCase());
+        });
+        return ['all', ...Array.from(pos).sort()] as POSFilter[];
+    }, [vocabulary]);
 
     // Filter function for SRS
     const filterBySRS = <T extends { srsStage: number | null }>(items: T[]): T[] => {
@@ -41,9 +62,21 @@ export default function LibraryTabs({ kanji, vocabulary }: LibraryTabsProps) {
         });
     };
 
-    // Filter kanji by search query and SRS
+    // Filter function for JLPT level
+    const filterByJLPT = <T extends { jlptLevel: string }>(items: T[]): T[] => {
+        if (jlptFilter === 'all') return items;
+        return items.filter(item => item.jlptLevel === jlptFilter);
+    };
+
+    // Filter function for part of speech (vocabulary only)
+    const filterByPOS = (items: (Vocabulary & { srsStage: number | null })[]): typeof items => {
+        if (posFilter === 'all') return items;
+        return items.filter(item => item.partOfSpeech?.toLowerCase() === posFilter);
+    };
+
+    // Filter kanji by search query and filters
     const filteredKanji = useMemo(() => {
-        const bySearch = kanji.filter(k => {
+        let result = kanji.filter(k => {
             if (!searchQuery) return true;
             const query = searchQuery.toLowerCase();
             return (
@@ -53,12 +86,14 @@ export default function LibraryTabs({ kanji, vocabulary }: LibraryTabsProps) {
                 k.kunyomi?.some(k => k.toLowerCase().includes(query))
             );
         });
-        return filterBySRS(bySearch);
-    }, [kanji, searchQuery, srsFilter]);
+        result = filterBySRS(result);
+        result = filterByJLPT(result);
+        return result;
+    }, [kanji, searchQuery, srsFilter, jlptFilter]);
 
-    // Filter vocabulary by search query and SRS
+    // Filter vocabulary by search query and filters
     const filteredVocabulary = useMemo(() => {
-        const bySearch = vocabulary.filter(v => {
+        let result = vocabulary.filter(v => {
             if (!searchQuery) return true;
             const query = searchQuery.toLowerCase();
             return (
@@ -67,10 +102,21 @@ export default function LibraryTabs({ kanji, vocabulary }: LibraryTabsProps) {
                 v.meaning.toLowerCase().includes(query)
             );
         });
-        return filterBySRS(bySearch);
-    }, [vocabulary, searchQuery, srsFilter]);
+        result = filterBySRS(result);
+        result = filterByJLPT(result);
+        result = filterByPOS(result);
+        return result;
+    }, [vocabulary, searchQuery, srsFilter, jlptFilter, posFilter]);
 
-    const activeFilters = srsFilter !== 'all' ? 1 : 0;
+    // Count active filters
+    const activeFilters = [srsFilter !== 'all', jlptFilter !== 'all', posFilter !== 'all'].filter(Boolean).length;
+
+    // Clear all filters
+    const clearFilters = () => {
+        setSrsFilter('all');
+        setJlptFilter('all');
+        setPosFilter('all');
+    };
 
     return (
         <div>
@@ -111,8 +157,8 @@ export default function LibraryTabs({ kanji, vocabulary }: LibraryTabsProps) {
                 <button
                     onClick={() => setShowFilters(!showFilters)}
                     className={`flex items-center gap-2 px-4 py-3 border rounded-xl font-medium transition-all ${activeFilters > 0
-                            ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300'
-                            : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                        ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300'
+                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                         }`}
                 >
                     <Filter className="w-4 h-4" />
@@ -132,14 +178,55 @@ export default function LibraryTabs({ kanji, vocabulary }: LibraryTabsProps) {
                         <h3 className="font-medium text-slate-900 dark:text-slate-100">Filters</h3>
                         {activeFilters > 0 && (
                             <button
-                                onClick={() => setSrsFilter('all')}
+                                onClick={clearFilters}
                                 className="text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
                             >
                                 Clear all
                             </button>
                         )}
                     </div>
-                    <div className="space-y-3">
+                    <div className="space-y-4">
+                        {/* JLPT Level Filter */}
+                        <div>
+                            <label className="text-sm text-slate-600 dark:text-slate-400 mb-2 block">JLPT Level</label>
+                            <div className="flex flex-wrap gap-2">
+                                {jlptLevels.map((level) => (
+                                    <button
+                                        key={level}
+                                        onClick={() => setJlptFilter(level)}
+                                        className={`px-3 py-1.5 text-sm rounded-lg transition-all ${jlptFilter === level
+                                            ? 'bg-emerald-500 text-white'
+                                            : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 hover:border-emerald-300'
+                                            }`}
+                                    >
+                                        {level === 'all' ? 'All' : level}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Part of Speech Filter (vocabulary only) */}
+                        {activeTab === 'vocabulary' && (
+                            <div>
+                                <label className="text-sm text-slate-600 dark:text-slate-400 mb-2 block">Part of Speech</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {partsOfSpeech.map((pos) => (
+                                        <button
+                                            key={pos}
+                                            onClick={() => setPosFilter(pos)}
+                                            className={`px-3 py-1.5 text-sm rounded-lg transition-all ${posFilter === pos
+                                                ? 'bg-emerald-500 text-white'
+                                                : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 hover:border-emerald-300'
+                                                }`}
+                                        >
+                                            {pos === 'all' ? 'All' : pos.charAt(0).toUpperCase() + pos.slice(1)}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* SRS Status Filter */}
                         <div>
                             <label className="text-sm text-slate-600 dark:text-slate-400 mb-2 block">SRS Status</label>
                             <div className="flex flex-wrap gap-2">
@@ -148,8 +235,8 @@ export default function LibraryTabs({ kanji, vocabulary }: LibraryTabsProps) {
                                         key={filter}
                                         onClick={() => setSrsFilter(filter)}
                                         className={`px-3 py-1.5 text-sm rounded-lg transition-all ${srsFilter === filter
-                                                ? 'bg-emerald-500 text-white'
-                                                : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 hover:border-emerald-300'
+                                            ? 'bg-emerald-500 text-white'
+                                            : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 hover:border-emerald-300'
                                             }`}
                                     >
                                         {filter === 'all' ? 'All' : filter.charAt(0).toUpperCase() + filter.slice(1)}

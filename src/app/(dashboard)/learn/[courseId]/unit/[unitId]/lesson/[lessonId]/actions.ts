@@ -102,6 +102,41 @@ export async function completeLesson(data: CompleteLessonData) {
             }
         }
 
+        // Also save lesson-level progress for unit unlock tracking
+        const existingLessonProgress = await db.select()
+            .from(userProgress)
+            .where(
+                and(
+                    eq(userProgress.userId, user.id),
+                    eq(userProgress.itemType, 'lesson'),
+                    eq(userProgress.itemId, data.lessonId)
+                )
+            );
+
+        if (existingLessonProgress.length === 0) {
+            // Mark lesson as completed (SRS stage 1 = learned)
+            await db.insert(userProgress).values({
+                userId: user.id,
+                itemType: 'lesson',
+                itemId: data.lessonId,
+                srsStage: 1,
+                correctCount: correctItems,
+                incorrectCount: totalItems - correctItems,
+                nextReview: new Date(Date.now() + 24 * 60 * 60 * 1000),
+                lastReviewed: new Date(),
+            });
+        } else {
+            // Update existing lesson progress
+            await db.update(userProgress)
+                .set({
+                    correctCount: existingLessonProgress[0].correctCount + correctItems,
+                    incorrectCount: existingLessonProgress[0].incorrectCount + (totalItems - correctItems),
+                    lastReviewed: new Date(),
+                    updatedAt: new Date(),
+                })
+                .where(eq(userProgress.id, existingLessonProgress[0].id));
+        }
+
         // Update user profile with XP and streak
         const [profile] = await db.select()
             .from(userProfiles)

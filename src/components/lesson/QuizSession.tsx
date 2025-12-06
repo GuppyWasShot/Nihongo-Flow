@@ -22,6 +22,8 @@ interface QuizSessionProps {
             explanation?: string;
             questionType?: 'fill_blank' | 'word_bank' | 'multiple_choice';
             questions?: any[];
+            kanjiIds?: number[];
+            text?: string;
         };
     };
     courseId: string;
@@ -91,6 +93,9 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
     const [failureCount, setFailureCount] = useState<Map<number, number>>(new Map());
     const [showHint, setShowHint] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
+
+    // Theory lesson flag - no quiz, just read and continue
+    const [isTheoryLesson, setIsTheoryLesson] = useState(false);
 
     // Word bank state
     const [selectedWords, setSelectedWords] = useState<number[]>([]);
@@ -167,6 +172,21 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                 hint: sentence.hint,
             }));
             setQuizItems(items);
+        }
+        // Theory lessons - mark as theory type (no quiz)
+        else if (lesson.type === 'theory') {
+            setIsTheoryLesson(true);
+        }
+        // Kanji practice - create quiz items from kanji IDs
+        else if (lesson.type === 'kanji_practice' && content.kanjiIds) {
+            // For now, just mark as theory until we have kanji data
+            // TODO: Fetch kanji data and create quiz items
+            setIsTheoryLesson(true);
+        }
+        // Fallback - treat as theory lesson if no recognized quiz format
+        else {
+            console.warn('Unknown lesson type or missing content:', lesson.type, content);
+            setIsTheoryLesson(true);
         }
     }, [lesson]);
 
@@ -263,8 +283,11 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
     const handleComplete = async () => {
         setIsSubmitting(true);
 
+        // Calculate accuracy - handle empty results (theory lessons)
         const correctCount = results.filter(r => r.correct).length;
-        const accuracy = Math.round((correctCount / results.length) * 100);
+        const accuracy = results.length > 0
+            ? Math.round((correctCount / results.length) * 100)
+            : 100; // Theory lessons get 100% since there's no quiz
 
         const result = await completeLesson({
             lessonId: lesson.id,
@@ -276,6 +299,23 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
             setTimeout(() => {
                 router.push(`/learn/${courseId}`);
             }, 2000);
+        }
+    };
+
+    // Complete theory lesson (no quiz)
+    const handleTheoryComplete = async () => {
+        setIsSubmitting(true);
+
+        const result = await completeLesson({
+            lessonId: lesson.id,
+            results: [],
+            accuracy: 100,
+        });
+
+        if ('success' in result && result.success) {
+            setTimeout(() => {
+                router.push(`/learn/${courseId}`);
+            }, 1500);
         }
     };
 
@@ -369,8 +409,87 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
         );
     }
 
-    if (!currentItem) {
+    // ============ RENDER THEORY LESSON (NO QUIZ) ============
+    if (isTheoryLesson) {
+        const content = lesson.content;
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
+                {/* Header */}
+                <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200/80 dark:border-slate-800">
+                    <div className="max-w-4xl mx-auto px-4 py-5">
+                        <div className="flex items-center justify-between">
+                            <button
+                                onClick={handleExit}
+                                className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                                aria-label="Exit lesson"
+                            >
+                                <X className="w-6 h-6 text-slate-500 dark:text-slate-400" />
+                            </button>
+                            <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">{lesson.title}</h2>
+                            <div className="w-10" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Content */}
+                <div className="max-w-2xl mx-auto px-4 py-14">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700/50 p-10 shadow-sm"
+                    >
+                        {content.instructions && (
+                            <p className="text-slate-600 dark:text-slate-400 text-center mb-8">
+                                {content.instructions}
+                            </p>
+                        )}
+
+                        {content.grammarPoint && (
+                            <div className="text-center mb-8">
+                                <h3 className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400 mb-2">
+                                    {content.grammarPoint}
+                                </h3>
+                            </div>
+                        )}
+
+                        {content.explanation && (
+                            <div className="prose dark:prose-invert max-w-none mb-8">
+                                <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-lg">
+                                    {content.explanation}
+                                </p>
+                            </div>
+                        )}
+
+                        {content.text && (
+                            <div className="prose dark:prose-invert max-w-none mb-8">
+                                <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
+                                    {content.text}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Continue button */}
+                        <button
+                            onClick={handleTheoryComplete}
+                            disabled={isSubmitting}
+                            className="w-full px-8 py-5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xl font-medium rounded-2xl hover:from-emerald-600 hover:to-teal-600 transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 active:scale-[0.98]"
+                        >
+                            {isSubmitting ? 'Saving...' : 'Continue'}
+                        </button>
+                    </motion.div>
+                </div>
+            </div>
+        );
+    }
+
+    // Show loading only when initializing quiz items (not for theory)
+    if (!currentItem && !isTheoryLesson) {
         return <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-900 dark:text-slate-100">Loading...</div>;
+    }
+
+    // Guard for currentItem being null (shouldn't happen after loading)
+    if (!currentItem) {
+        return <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-900 dark:text-slate-100">No questions available</div>;
     }
 
     // ============ RENDER FILL-IN-THE-BLANK QUESTION ============

@@ -590,6 +590,372 @@ async function seed() {
                     },
                 ]
             },
+            // ============ UNIT 6: DEMONSTRATIVES ============
+            {
+                title: 'Unit 6: Demonstratives (これ・それ・あれ)',
+                description: 'Learn to point to and identify objects using Japanese demonstratives',
+                lessons: [
+                    {
+                        title: 'This, That, That Over There', type: 'theory', content: {
+                            grammar: 'Demonstrative Pronouns',
+                            explanation: 'これ (this - near speaker), それ (that - near listener), あれ (that over there - far from both). Add の to make them modify nouns: この本 (this book).',
+                            examples: [
+                                { japanese: 'これはペンです', reading: 'kore wa pen desu', english: 'This is a pen' },
+                                { japanese: 'それは何ですか', reading: 'sore wa nan desu ka', english: 'What is that?' },
+                                { japanese: 'あれは学校です', reading: 'are wa gakkou desu', english: 'That (over there) is a school' },
+                            ]
+                        }
+                    },
+                    {
+                        title: 'Demonstrative Vocabulary', type: 'vocab_drill', content: {
+                            instructions: 'Type the reading for each word',
+                            characters: ['これ', 'それ', 'あれ', 'この', 'その', 'あの', 'ここ', 'そこ', 'あそこ'],
+                            romaji: ['kore', 'sore', 'are', 'kono', 'sono', 'ano', 'koko', 'soko', 'asoko']
+                        }
+                    },
+                    {
+                        title: 'Demonstrative Practice', type: 'grammar', content: {
+                            questionType: 'fill_blank',
+                            questions: [
+                                { sentence: '{_}は本です', sentenceReading: '{_}はほんです', sentenceEnglish: 'This is a book.', answer: 'これ', hint: 'Near the speaker' },
+                                { sentence: '{_}は何ですか', sentenceReading: '{_}はなんですか', sentenceEnglish: 'What is that (near you)?', answer: 'それ', hint: 'Near the listener' },
+                                { sentence: '{_}本は私のです', sentenceReading: '{_}ほんはわたしのです', sentenceEnglish: 'This book is mine.', answer: 'この', hint: 'This + noun' },
+                                { sentence: '{_}は駅です', sentenceReading: '{_}はえきです', sentenceEnglish: 'That over there is a station.', answer: 'あれ', hint: 'Far from both speaker and listener' },
+                            ]
+                        }
+                    },
+                    {
+                        title: 'Build Demonstrative Sentences', type: 'grammar', content: {
+                            grammarPoint: 'これ/それ/あれ + は + Noun + です',
+                            questionType: 'word_bank',
+                            questions: [
+                                {
+                                    targetSentence: 'これはペンです',
+                                    targetReading: 'これはぺんです',
+                                    targetEnglish: 'This is a pen.',
+                                    words: ['です', 'は', 'ペン', 'これ'],
+                                    wordsReading: ['です', 'は', 'ぺん', 'これ'],
+                                    correctOrder: [3, 1, 2, 0],
+                                },
+                                {
+                                    targetSentence: 'それは何ですか',
+                                    targetReading: 'それはなんですか',
+                                    targetEnglish: 'What is that?',
+                                    words: ['何', 'ですか', 'それ', 'は'],
+                                    wordsReading: ['なん', 'ですか', 'それ', 'は'],
+                                    correctOrder: [2, 3, 0, 1],
+                                },
+                            ]
+                        }
+                    },
+                ]
+            },
+            // ============ UNIT 7: LOCATIONS & EXISTENCE ============
+            {
+                title: 'Unit 7: Location & Existence (います・あります)',
+                description: 'Learn to describe where things and people are located',
+                lessons: [
+                    {
+                        title: 'います vs あります', type: 'theory', content: {
+                            grammar: 'Existence Verbs',
+                            explanation: 'います (imasu) is used for living things (people, animals). あります (arimasu) is used for non-living things. Location is marked with に.',
+                            examples: [
+                                { japanese: '猫がいます', reading: 'neko ga imasu', english: 'There is a cat' },
+                                { japanese: '本があります', reading: 'hon ga arimasu', english: 'There is a book' },
+                                { japanese: '部屋に猫がいます', reading: 'heya ni neko ga imasu', english: 'There is a cat in the room' },
+                            ]
+                        }
+                    },
+                    {
+                        title: 'Location Vocabulary', type: 'vocab_drill', content: {
+                            instructions: 'Type the reading for each word',
+                            characters: ['上', '下', '中', '前', '後ろ', '右', '左', '隣', '近く'],
+                            romaji: ['ue', 'shita', 'naka', 'mae', 'ushiro', 'migi', 'hidari', 'tonari', 'chikaku']
+                        }
+                    },
+                    {
+                        title: 'Location Kanji', type: 'kanji_practice', content: {
+                            instructions: 'Learn kanji for locations',
+                            kanji: ['上', '下', '中', '前', '後', '右', '左'],
+                            readings: ['うえ', 'した', 'なか', 'まえ', 'うしろ', 'みぎ', 'ひだり'],
+                            meanings: ['above', 'below', 'inside', 'front', 'behind', 'right', 'left']
+                        }
+                    },
+                    {
+                        title: 'Existence Practice', type: 'grammar', content: {
+                            questionType: 'multiple_choice',
+                            questions: [
+                                {
+                                    sentence: '猫が___',
+                                    sentenceReading: 'ねこが___',
+                                    sentenceEnglish: 'There is a cat.',
+                                    options: ['あります', 'います', 'です', 'ます'],
+                                    correctAnswer: 1,
+                                    explanation: 'Use います for living things (animals, people).',
+                                },
+                                {
+                                    sentence: '机の上に本が___',
+                                    sentenceReading: 'つくえのうえにほんが___',
+                                    sentenceEnglish: 'There is a book on the desk.',
+                                    options: ['います', 'あります', 'です', 'ます'],
+                                    correctAnswer: 1,
+                                    explanation: 'Use あります for non-living things.',
+                                },
+                                {
+                                    sentence: '公園に___がいます',
+                                    sentenceReading: 'こうえんに___がいます',
+                                    sentenceEnglish: 'There are ___ in the park. (living)',
+                                    options: ['本', '机', '犬', 'ペン'],
+                                    correctAnswer: 2,
+                                    explanation: '犬 (dog) is a living thing, so います is correct.',
+                                },
+                            ]
+                        }
+                    },
+                ]
+            },
+            // ============ UNIT 8: ADJECTIVES ============
+            {
+                title: 'Unit 8: Adjectives (い & な)',
+                description: 'Describe things using Japanese adjectives',
+                lessons: [
+                    {
+                        title: 'い-Adjectives and な-Adjectives', type: 'theory', content: {
+                            grammar: 'Adjective Types',
+                            explanation: 'い-adjectives end in い and can directly modify nouns. な-adjectives need な before nouns. Both can be used predicatively with です.',
+                            examples: [
+                                { japanese: '大きい犬', reading: 'ookii inu', english: 'big dog' },
+                                { japanese: '静かな部屋', reading: 'shizuka na heya', english: 'quiet room' },
+                                { japanese: 'この本は面白いです', reading: 'kono hon wa omoshiroi desu', english: 'This book is interesting' },
+                            ]
+                        }
+                    },
+                    {
+                        title: 'Adjective Vocabulary', type: 'vocab_drill', content: {
+                            instructions: 'Type the reading for each adjective',
+                            characters: ['大きい', '小さい', '新しい', '古い', '高い', '安い', '静か', '元気', '好き'],
+                            romaji: ['ookii', 'chiisai', 'atarashii', 'furui', 'takai', 'yasui', 'shizuka', 'genki', 'suki']
+                        }
+                    },
+                    {
+                        title: 'Adjective Kanji', type: 'kanji_practice', content: {
+                            instructions: 'Learn kanji for common adjectives',
+                            kanji: ['大', '小', '新', '古', '高', '安', '長', '短'],
+                            readings: ['おお', 'ちい', 'あたら', 'ふる', 'たか', 'やす', 'なが', 'みじか'],
+                            meanings: ['big', 'small', 'new', 'old', 'tall/expensive', 'cheap', 'long', 'short']
+                        }
+                    },
+                    {
+                        title: 'Adjective Practice', type: 'grammar', content: {
+                            questionType: 'fill_blank',
+                            questions: [
+                                { sentence: 'この部屋は静か{_}です', sentenceReading: 'このへやはしずか{_}です', sentenceEnglish: 'This room is quiet.', answer: '', hint: 'な-adjective + です (no な needed before です)' },
+                                { sentence: '新し{_}本を買いました', sentenceReading: 'あたらし{_}ほんをかいました', sentenceEnglish: 'I bought a new book.', answer: 'い', hint: 'い-adjective directly modifies noun' },
+                                { sentence: '彼女は元気{_}人です', sentenceReading: 'かのじょはげんき{_}ひとです', sentenceEnglish: 'She is an energetic person.', answer: 'な', hint: 'な-adjective + な + noun' },
+                            ]
+                        }
+                    },
+                ]
+            },
+            // ============ UNIT 9: PAST TENSE ============
+            {
+                title: 'Unit 9: Past Tense',
+                description: 'Learn to talk about past actions and states',
+                lessons: [
+                    {
+                        title: 'Past Tense Formation', type: 'theory', content: {
+                            grammar: 'ました / ませんでした / かった / なかった',
+                            explanation: 'Verbs: ます→ました (did), ません→ませんでした (did not). い-adj: い→かった. な-adj: だ→だった. です→でした.',
+                            examples: [
+                                { japanese: '食べました', reading: 'tabemashita', english: 'I ate' },
+                                { japanese: '面白かったです', reading: 'omoshirokatta desu', english: 'It was interesting' },
+                                { japanese: '昨日は暇でした', reading: 'kinou wa hima deshita', english: 'Yesterday I was free' },
+                            ]
+                        }
+                    },
+                    {
+                        title: 'Time Word Vocabulary', type: 'vocab_drill', content: {
+                            instructions: 'Type the reading for each time word',
+                            characters: ['昨日', '先週', '先月', '去年', 'さっき', '今朝', '昨夜'],
+                            romaji: ['kinou', 'senshuu', 'sengetsu', 'kyonen', 'sakki', 'kesa', 'yuube']
+                        }
+                    },
+                    {
+                        title: 'Past Tense Practice', type: 'grammar', content: {
+                            questionType: 'fill_blank',
+                            questions: [
+                                { sentence: '昨日、映画を見{_}', sentenceReading: 'きのう、えいがをみ{_}', sentenceEnglish: 'I watched a movie yesterday.', answer: 'ました', hint: 'Polite past tense of verb' },
+                                { sentence: 'この本は面白{_}です', sentenceReading: 'このほんはおもしろ{_}です', sentenceEnglish: 'This book was interesting.', answer: 'かった', hint: 'Past tense of い-adjective' },
+                                { sentence: '先週、学校に行き{_}でした', sentenceReading: 'せんしゅう、がっこうにいき{_}でした', sentenceEnglish: 'I did not go to school last week.', answer: 'ません', hint: 'Polite negative past tense' },
+                            ]
+                        }
+                    },
+                    {
+                        title: 'Build Past Tense Sentences', type: 'grammar', content: {
+                            grammarPoint: 'Time + Action + ました',
+                            questionType: 'word_bank',
+                            questions: [
+                                {
+                                    targetSentence: '昨日ご飯を食べました',
+                                    targetReading: 'きのうごはんをたべました',
+                                    targetEnglish: 'I ate rice yesterday.',
+                                    words: ['食べました', 'を', '昨日', 'ご飯'],
+                                    wordsReading: ['たべました', 'を', 'きのう', 'ごはん'],
+                                    correctOrder: [2, 3, 1, 0],
+                                },
+                                {
+                                    targetSentence: '先週日本に行きました',
+                                    targetReading: 'せんしゅうにほんにいきました',
+                                    targetEnglish: 'I went to Japan last week.',
+                                    words: ['先週', '行きました', 'に', '日本'],
+                                    wordsReading: ['せんしゅう', 'いきました', 'に', 'にほん'],
+                                    correctOrder: [0, 3, 2, 1],
+                                },
+                            ]
+                        }
+                    },
+                ]
+            },
+            // ============ UNIT 10: TE-FORM & REQUESTS ============
+            {
+                title: 'Unit 10: て-Form & Requests',
+                description: 'Learn the versatile て-form for requests and connecting actions',
+                lessons: [
+                    {
+                        title: 'Introduction to て-Form', type: 'theory', content: {
+                            grammar: 'て-Form Formation',
+                            explanation: 'The て-form is one of the most useful verb forms. It connects actions and is used for requests (てください). Formation varies by verb type.',
+                            examples: [
+                                { japanese: '食べてください', reading: 'tabete kudasai', english: 'Please eat' },
+                                { japanese: '見て、聞いて', reading: 'mite, kiite', english: 'Look and listen' },
+                                { japanese: '待ってください', reading: 'matte kudasai', english: 'Please wait' },
+                            ]
+                        }
+                    },
+                    {
+                        title: 'Common て-Form Verbs', type: 'vocab_drill', content: {
+                            instructions: 'Type the reading for each て-form',
+                            characters: ['食べて', '飲んで', '見て', '聞いて', '書いて', '読んで', '話して', '待って'],
+                            romaji: ['tabete', 'nonde', 'mite', 'kiite', 'kaite', 'yonde', 'hanashite', 'matte']
+                        }
+                    },
+                    {
+                        title: 'Request Practice', type: 'grammar', content: {
+                            questionType: 'fill_blank',
+                            questions: [
+                                { sentence: 'ここに座っ{_}ください', sentenceReading: 'ここにすわっ{_}ください', sentenceEnglish: 'Please sit here.', answer: 'て', hint: 'て-form + ください' },
+                                { sentence: '日本語で話し{_}ください', sentenceReading: 'にほんごではなし{_}ください', sentenceEnglish: 'Please speak in Japanese.', answer: 'て', hint: 'て-form + ください' },
+                                { sentence: 'ちょっと待っ{_}', sentenceReading: 'ちょっとまっ{_}', sentenceEnglish: 'Wait a moment. (casual)', answer: 'て', hint: 'Casual request uses just て-form' },
+                            ]
+                        }
+                    },
+                    {
+                        title: 'Build Request Sentences', type: 'grammar', content: {
+                            grammarPoint: 'Verb(て) + ください',
+                            questionType: 'word_bank',
+                            questions: [
+                                {
+                                    targetSentence: '窓を開けてください',
+                                    targetReading: 'まどをあけてください',
+                                    targetEnglish: 'Please open the window.',
+                                    words: ['窓', 'ください', 'を', '開けて'],
+                                    wordsReading: ['まど', 'ください', 'を', 'あけて'],
+                                    correctOrder: [0, 2, 3, 1],
+                                },
+                                {
+                                    targetSentence: 'もう一度言ってください',
+                                    targetReading: 'もういちどいってください',
+                                    targetEnglish: 'Please say it one more time.',
+                                    words: ['一度', 'ください', 'もう', '言って'],
+                                    wordsReading: ['いちど', 'ください', 'もう', 'いって'],
+                                    correctOrder: [2, 0, 3, 1],
+                                },
+                            ]
+                        }
+                    },
+                ]
+            },
+            // ============ UNIT 11: FINAL REVIEW ============
+            {
+                title: 'Unit 11: N5 Final Review',
+                description: 'Comprehensive review of all N5 grammar and vocabulary',
+                lessons: [
+                    {
+                        title: 'Grammar Review', type: 'theory', content: {
+                            grammar: 'N5 Grammar Summary',
+                            explanation: 'Review all major grammar points: は/が, particles, adjectives, て-form, past tense, and demonstratives.',
+                            examples: [
+                                { japanese: '私は学生です', reading: 'watashi wa gakusei desu', english: 'I am a student (Basic sentence)' },
+                                { japanese: '昨日、面白い本を読みました', reading: 'kinou, omoshiroi hon wo yomimashita', english: 'I read an interesting book yesterday (Past + adj)' },
+                                { japanese: 'ここに座ってください', reading: 'koko ni suwatte kudasai', english: 'Please sit here (te-form request)' },
+                            ]
+                        }
+                    },
+                    {
+                        title: 'Mixed Particle Review', type: 'grammar', content: {
+                            questionType: 'multiple_choice',
+                            questions: [
+                                {
+                                    sentence: '私___田中です',
+                                    sentenceReading: 'わたし___たなかです',
+                                    sentenceEnglish: 'I am Tanaka.',
+                                    options: ['が', 'を', 'は', 'に'],
+                                    correctAnswer: 2,
+                                    explanation: 'は marks the topic.',
+                                },
+                                {
+                                    sentence: '本___読みます',
+                                    sentenceReading: 'ほん___よみます',
+                                    sentenceEnglish: 'I read a book.',
+                                    options: ['は', 'を', 'に', 'で'],
+                                    correctAnswer: 1,
+                                    explanation: 'を marks the direct object.',
+                                },
+                                {
+                                    sentence: '学校___行きます',
+                                    sentenceReading: 'がっこう___いきます',
+                                    sentenceEnglish: 'I go to school.',
+                                    options: ['を', 'が', 'に', 'は'],
+                                    correctAnswer: 2,
+                                    explanation: 'に marks the destination.',
+                                },
+                                {
+                                    sentence: '猫___います',
+                                    sentenceReading: 'ねこ___います',
+                                    sentenceEnglish: 'There is a cat.',
+                                    options: ['は', 'を', 'が', 'に'],
+                                    correctAnswer: 2,
+                                    explanation: 'が marks the subject with existence verbs.',
+                                },
+                            ]
+                        }
+                    },
+                    {
+                        title: 'Comprehensive Sentence Building', type: 'grammar', content: {
+                            grammarPoint: 'Mixed N5 Patterns',
+                            questionType: 'word_bank',
+                            questions: [
+                                {
+                                    targetSentence: '私の友達は日本人です',
+                                    targetReading: 'わたしのともだちはにほんじんです',
+                                    targetEnglish: 'My friend is Japanese.',
+                                    words: ['友達', 'です', '私', 'は', 'の', '日本人'],
+                                    wordsReading: ['ともだち', 'です', 'わたし', 'は', 'の', 'にほんじん'],
+                                    correctOrder: [2, 4, 0, 3, 5, 1],
+                                },
+                                {
+                                    targetSentence: '駅の前にバス停があります',
+                                    targetReading: 'えきのまえにばすていがあります',
+                                    targetEnglish: 'There is a bus stop in front of the station.',
+                                    words: ['の', 'があります', '前', '駅', 'に', 'バス停'],
+                                    wordsReading: ['の', 'があります', 'まえ', 'えき', 'に', 'ばすてい'],
+                                    correctOrder: [3, 0, 2, 4, 5, 1],
+                                },
+                            ]
+                        }
+                    },
+                ]
+            },
         ];
 
         for (let i = 0; i < unitDefinitions.length; i++) {
