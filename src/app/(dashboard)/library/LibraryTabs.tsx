@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Search } from 'lucide-react';
+import Link from 'next/link';
 import type { Kanji, Vocabulary } from '../../../lib/db/schema';
 
 interface LibraryTabsProps {
@@ -49,21 +50,21 @@ export default function LibraryTabs({ kanji, vocabulary }: LibraryTabsProps) {
     return (
         <div>
             {/* Tabs */}
-            <div className="flex items-center gap-4 mb-6 border-b border-gray-200">
+            <div className="flex items-center gap-4 mb-6 border-b border-gray-200 dark:border-gray-700">
                 <button
                     onClick={() => setActiveTab('kanji')}
-                    className={`px-6 py-3 font-semibold transition-all ${activeTab === 'kanji'
-                            ? 'text-indigo-600 border-b-2 border-indigo-600'
-                            : 'text-gray-600 hover:text-gray-900'
+                    className={`px-6 py-3 font-semibold transition-all duration-200 ${activeTab === 'kanji'
+                        ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                         }`}
                 >
                     Kanji ({kanji.length})
                 </button>
                 <button
                     onClick={() => setActiveTab('vocabulary')}
-                    className={`px-6 py-3 font-semibold transition-all ${activeTab === 'vocabulary'
-                            ? 'text-indigo-600 border-b-2 border-indigo-600'
-                            : 'text-gray-600 hover:text-gray-900'
+                    className={`px-6 py-3 font-semibold transition-all duration-200 ${activeTab === 'vocabulary'
+                        ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                         }`}
                 >
                     Vocabulary ({vocabulary.length})
@@ -73,13 +74,13 @@ export default function LibraryTabs({ kanji, vocabulary }: LibraryTabsProps) {
             {/* Search Bar */}
             <div className="mb-6">
                 <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                     <input
                         type="text"
                         placeholder={`Search ${activeTab}...`}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                        className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all duration-200 placeholder:text-gray-400 dark:placeholder:text-gray-500"
                     />
                 </div>
             </div>
@@ -88,36 +89,37 @@ export default function LibraryTabs({ kanji, vocabulary }: LibraryTabsProps) {
             {activeTab === 'kanji' && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                     {filteredKanji.map((k) => (
-                        <div
+                        <Link
                             key={k.id}
-                            className="bg-white rounded-xl border-2 border-gray-200 p-4 hover:border-indigo-300 hover:shadow-lg transition-all duration-200 cursor-pointer group"
+                            href={`/library/kanji/${k.id}`}
+                            className="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 p-4 hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-lg transition-all duration-200 cursor-pointer group hover:scale-[1.02] active:scale-[0.98]"
                         >
                             <div className="flex items-start justify-between mb-2">
-                                <span className="text-4xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                                <span className="text-4xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                                     {k.character}
                                 </span>
                                 {getSRSBadge(k.srsStage)}
                             </div>
                             <div className="space-y-1">
-                                <p className="text-xs text-gray-500 font-medium">{k.jlptLevel}</p>
-                                <p className="text-sm text-gray-700 line-clamp-1">
+                                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{k.jlptLevel}</p>
+                                <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-1">
                                     {k.meanings.join(', ')}
                                 </p>
                                 {k.onyomi && k.onyomi.length > 0 && (
-                                    <p className="text-xs text-gray-500">
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
                                         音: {k.onyomi.join(', ')}
                                     </p>
                                 )}
                                 {k.kunyomi && k.kunyomi.length > 0 && (
-                                    <p className="text-xs text-gray-500">
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
                                         訓: {k.kunyomi.join(', ')}
                                     </p>
                                 )}
                             </div>
-                        </div>
+                        </Link>
                     ))}
                     {filteredKanji.length === 0 && (
-                        <div className="col-span-full text-center py-12 text-gray-500">
+                        <div className="col-span-full text-center py-12 text-gray-500 dark:text-gray-400">
                             <p>No kanji found matching "{searchQuery}"</p>
                         </div>
                     )}
@@ -127,36 +129,37 @@ export default function LibraryTabs({ kanji, vocabulary }: LibraryTabsProps) {
             {activeTab === 'vocabulary' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredVocabulary.map((v) => (
-                        <div
+                        <Link
                             key={v.id}
-                            className="bg-white rounded-xl border-2 border-gray-200 p-4 hover:border-indigo-300 hover:shadow-lg transition-all duration-200 cursor-pointer group"
+                            href={`/library/vocabulary/${v.id}`}
+                            className="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 p-4 hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-lg transition-all duration-200 cursor-pointer group hover:scale-[1.02] active:scale-[0.98]"
                         >
                             <div className="flex items-start justify-between mb-2">
                                 <div>
-                                    <p className="text-2xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                                         {v.writing}
                                     </p>
-                                    <p className="text-sm text-gray-600">{v.reading}</p>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">{v.reading}</p>
                                 </div>
                                 {getSRSBadge(v.srsStage)}
                             </div>
                             <div className="space-y-1">
-                                <p className="text-sm text-gray-700">{v.meaning}</p>
+                                <p className="text-sm text-gray-700 dark:text-gray-300">{v.meaning}</p>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full">
+                                    <span className="text-xs px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full">
                                         {v.jlptLevel}
                                     </span>
                                     {v.partOfSpeech && (
-                                        <span className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded-full">
+                                        <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full">
                                             {v.partOfSpeech}
                                         </span>
                                     )}
                                 </div>
                             </div>
-                        </div>
+                        </Link>
                     ))}
                     {filteredVocabulary.length === 0 && (
-                        <div className="col-span-full text-center py-12 text-gray-500">
+                        <div className="col-span-full text-center py-12 text-gray-500 dark:text-gray-400">
                             <p>No vocabulary found matching "{searchQuery}"</p>
                         </div>
                     )}

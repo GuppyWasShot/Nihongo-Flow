@@ -2,78 +2,36 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ArrowRight, CheckCircle2, XCircle, Trophy, Lightbulb } from 'lucide-react';
+import { X, ArrowRight, CheckCircle2, XCircle, Trophy, RotateCcw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import * as wanakana from 'wanakana';
-import { completeLesson } from '../../app/(dashboard)/learn/[courseId]/unit/[unitId]/lesson/[lessonId]/actions';
+import { submitReviewResult, completeReviewSession, type ReviewItem } from './actions';
+import { getIntervalDescription } from '../../../lib/srs';
 
-interface QuizSessionProps {
-    lesson: {
-        id: number;
-        title: string;
-        type: string;
-        content: {
-            instructions?: string;
-            characters?: string[];
-            romaji?: string[];
-            sentences?: Array<{ q: string; a: string; hint?: string }>;
-        };
-    };
-    courseId: string;
-    unitId: number;
+interface ReviewSessionProps {
+    initialItems: ReviewItem[];
 }
 
-interface QuizItem {
-    id: number;
-    question: string;
-    answer: string;
-    type: 'vocabulary' | 'kanji' | 'grammar';
-    hint?: string;
+interface ReviewResult {
+    progressId: number;
+    isCorrect: boolean;
+    newStage: number;
 }
 
-interface QuizResult {
-    itemType: 'vocabulary' | 'kanji';
-    itemId: number;
-    correct: boolean;
-}
-
-export default function QuizSession({ lesson, courseId, unitId }: QuizSessionProps) {
+export default function ReviewSession({ initialItems }: ReviewSessionProps) {
     const router = useRouter();
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const [quizItems, setQuizItems] = useState<QuizItem[]>([]);
+    const [items, setItems] = useState<ReviewItem[]>(initialItems);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [userAnswer, setUserAnswer] = useState('');
     const [showFeedback, setShowFeedback] = useState(false);
     const [isCorrect, setIsCorrect] = useState(false);
-    const [results, setResults] = useState<QuizResult[]>([]);
-    const [incorrectQueue, setIncorrectQueue] = useState<QuizItem[]>([]);
+    const [newStage, setNewStage] = useState(0);
+    const [results, setResults] = useState<ReviewResult[]>([]);
+    const [incorrectQueue, setIncorrectQueue] = useState<ReviewItem[]>([]);
     const [isComplete, setIsComplete] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [failureCount, setFailureCount] = useState<Map<number, number>>(new Map());
-    const [showHint, setShowHint] = useState(false);
-
-    // Initialize quiz items from lesson content
-    useEffect(() => {
-        if (lesson.type === 'vocab_drill' && lesson.content.characters && lesson.content.romaji) {
-            const items: QuizItem[] = lesson.content.characters.map((char, idx) => ({
-                id: idx + 1,
-                question: char,
-                answer: lesson.content.romaji![idx],
-                type: 'vocabulary' as const,
-            }));
-            setQuizItems(items);
-        } else if (lesson.type === 'grammar' && lesson.content.sentences) {
-            const items: QuizItem[] = lesson.content.sentences.map((sentence, idx) => ({
-                id: idx + 1,
-                question: sentence.q,
-                answer: sentence.a,
-                type: 'grammar' as const,
-                hint: sentence.hint,
-            }));
-            setQuizItems(items);
-        }
-    }, [lesson]);
 
     // Bind wanakana to input
     useEffect(() => {
@@ -87,62 +45,62 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
         };
     }, [currentIndex]);
 
-    const currentItem = quizItems[currentIndex];
-    const progress = ((currentIndex + 1) / quizItems.length) * 100;
+    const currentItem = items[currentIndex];
+    const progress = items.length > 0 ? ((currentIndex + 1) / items.length) * 100 : 0;
+    const totalItems = initialItems.length;
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!currentItem || showFeedback) return;
+        if (!currentItem || showFeedback || isSubmitting) return;
 
-        // Convert user answer to hiragana for comparison
+        setIsSubmitting(true);
+
+        // Normalize answers for comparison
         const normalizedAnswer = wanakana.toHiragana(userAnswer.trim().toLowerCase());
         const normalizedCorrect = wanakana.toHiragana(currentItem.answer.trim().toLowerCase());
-        const correct = normalizedAnswer === normalizedCorrect;
+
+        // Check if answer matches primary or any alternatives
+        const alternatives = currentItem.alternatives?.map(a => wanakana.toHiragana(a.toLowerCase())) || [];
+        const correct = normalizedAnswer === normalizedCorrect || alternatives.includes(normalizedAnswer);
+
+        // Submit to server
+        const result = await submitReviewResult(currentItem.progressId, correct);
 
         setIsCorrect(correct);
+        setNewStage(result.newStage);
         setShowFeedback(true);
-
-        // Track failure count for hint system
-        if (!correct) {
-            const currentFailures = failureCount.get(currentItem.id) || 0;
-            const newFailures = currentFailures + 1;
-            setFailureCount(new Map(failureCount.set(currentItem.id, newFailures)));
-
-            // Show hint after 3 failures on grammar questions
-            if (newFailures >= 3 && currentItem.type === 'grammar' && currentItem.hint) {
-                setShowHint(true);
-            }
-        }
+        setIsSubmitting(false);
 
         // Track result
-        const result: QuizResult = {
-            itemType: currentItem.type === 'grammar' ? 'vocabulary' : currentItem.type,
-            itemId: currentItem.id,
-            correct,
-        };
-        setResults(prev => [...prev, result]);
+        setResults(prev => [...prev, {
+            progressId: currentItem.progressId,
+            isCorrect: correct,
+            newStage: result.newStage,
+        }]);
 
-        // If incorrect, queue for retry at the end
+        // If incorrect, queue for retry
         if (!correct) {
-            setIncorrectQueue(prev => [...prev, currentItem]);
+            setIncorrectQueue(prev => [...prev, {
+                ...currentItem,
+                srsStage: result.newStage,
+            }]);
         }
     };
 
     const handleNext = () => {
         setShowFeedback(false);
-        setShowHint(false);
         setUserAnswer('');
 
-        // Check if we're at the end of the main quiz
-        if (currentIndex + 1 >= quizItems.length) {
-            // If there are items in incorrect queue, add them back
+        // Check if we're at the end
+        if (currentIndex + 1 >= items.length) {
             if (incorrectQueue.length > 0) {
-                setQuizItems(prev => [...prev, ...incorrectQueue]);
+                // Add incorrect items back to queue
+                setItems(prev => [...prev, ...incorrectQueue]);
                 setIncorrectQueue([]);
                 setCurrentIndex(currentIndex + 1);
             } else {
-                // Quiz complete!
+                // Complete!
                 setIsComplete(true);
             }
         } else {
@@ -153,33 +111,26 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
     const handleComplete = async () => {
         setIsSubmitting(true);
 
-        const correctCount = results.filter(r => r.correct).length;
-        const accuracy = Math.round((correctCount / results.length) * 100);
+        const correctCount = results.filter(r => r.isCorrect).length;
+        await completeReviewSession(correctCount, totalItems);
 
-        const result = await completeLesson({
-            lessonId: lesson.id,
-            results,
-            accuracy,
-        });
-
-        if ('success' in result && result.success) {
-            setTimeout(() => {
-                router.push(`/learn/${courseId}`);
-            }, 2000);
-        }
+        setTimeout(() => {
+            router.push('/learn');
+            router.refresh();
+        }, 1500);
     };
 
     const handleExit = () => {
-        if (confirm('Are you sure you want to exit? Your progress will not be saved.')) {
-            router.push(`/learn/${courseId}`);
+        if (confirm('Are you sure you want to exit? Your progress has been saved.')) {
+            router.push('/learn');
         }
     };
 
     // Completion screen
     if (isComplete) {
-        const correctCount = results.filter(r => r.correct).length;
-        const accuracy = Math.round((correctCount / results.length) * 100);
-        const xpEarned = results.length * 2 + (accuracy === 100 ? 10 : 0);
+        const correctCount = results.filter(r => r.isCorrect).length;
+        const accuracy = Math.round((correctCount / totalItems) * 100);
+        const xpEarned = totalItems * 5 + (accuracy === 100 ? 10 : 0);
 
         return (
             <motion.div
@@ -203,24 +154,37 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4"
+                        className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2"
                     >
-                        Lesson Complete!
+                        Review Complete!
                     </motion.h1>
+
+                    <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.35 }}
+                        className="text-gray-600 dark:text-gray-400 mb-8"
+                    >
+                        Great job reinforcing your knowledge
+                    </motion.p>
 
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.4 }}
-                        className="grid grid-cols-2 gap-4 mb-8"
+                        className="grid grid-cols-3 gap-4 mb-8"
                     >
-                        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-xl p-6 border-2 border-indigo-200 dark:border-indigo-700">
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Accuracy</p>
-                            <p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">{accuracy}%</p>
+                        <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-xl p-4 border-2 border-green-200 dark:border-green-700">
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Correct</p>
+                            <p className="text-2xl font-bold text-green-600 dark:text-green-400">{correctCount}</p>
                         </div>
-                        <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-xl p-6 border-2 border-green-200 dark:border-green-700">
+                        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-xl p-4 border-2 border-indigo-200 dark:border-indigo-700">
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Accuracy</p>
+                            <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{accuracy}%</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/30 dark:to-red-900/30 rounded-xl p-4 border-2 border-orange-200 dark:border-orange-700">
                             <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">XP Earned</p>
-                            <p className="text-3xl font-bold text-green-600 dark:text-green-400">+{xpEarned}</p>
+                            <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">+{xpEarned}</p>
                         </div>
                     </motion.div>
 
@@ -232,7 +196,7 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                         disabled={isSubmitting}
                         className="w-full px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 active:scale-95"
                     >
-                        {isSubmitting ? 'Saving...' : 'Continue'}
+                        {isSubmitting ? 'Saving...' : 'Back to Dashboard'}
                     </motion.button>
                 </div>
             </motion.div>
@@ -243,36 +207,6 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
         return <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center text-gray-900 dark:text-gray-100">Loading...</div>;
     }
 
-    // Render grammar question with sentence completion
-    const renderGrammarQuestion = () => {
-        const parts = currentItem.question.split('_');
-
-        return (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-12 mb-6 text-center shadow-lg">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">Fill in the blank</p>
-                <div className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-8 flex items-center justify-center gap-4 flex-wrap">
-                    <span>{parts[0]}</span>
-                    <div className="inline-flex items-center justify-center px-6 py-3 bg-indigo-50 dark:bg-indigo-900/30 border-2 border-indigo-300 dark:border-indigo-600 border-dashed rounded-xl min-w-[120px]">
-                        <span className="text-indigo-600 dark:text-indigo-400">?</span>
-                    </div>
-                    {parts[1] && <span>{parts[1]}</span>}
-                </div>
-            </div>
-        );
-    };
-
-    // Render vocabulary question as flashcard
-    const renderVocabQuestion = () => {
-        return (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-12 mb-6 text-center shadow-lg">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">What is the reading?</p>
-                <div className="text-8xl font-bold text-gray-900 dark:text-gray-100 mb-8">
-                    {currentItem.question}
-                </div>
-            </div>
-        );
-    };
-
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
             {/* Header */}
@@ -282,11 +216,16 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                         <button
                             onClick={handleExit}
                             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                            aria-label="Exit lesson"
+                            aria-label="Exit review"
                         >
                             <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
                         </button>
-                        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{lesson.title}</h2>
+                        <div className="flex items-center gap-2">
+                            <RotateCcw className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                            <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                Review ({currentIndex + 1}/{items.length})
+                            </span>
+                        </div>
                         <div className="w-10" />
                     </div>
 
@@ -302,7 +241,7 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                 </div>
             </div>
 
-            {/* Quiz Content */}
+            {/* Review Content */}
             <div className="max-w-2xl mx-auto px-4 py-12">
                 <AnimatePresence mode="wait">
                     <motion.div
@@ -313,27 +252,26 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                         transition={{ duration: 0.3 }}
                     >
                         {/* Question Card */}
-                        {currentItem.type === 'grammar' ? renderGrammarQuestion() : renderVocabQuestion()}
-
-                        {/* Hint Modal */}
-                        <AnimatePresence>
-                            {showHint && currentItem.hint && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                    className="bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-300 dark:border-yellow-700 rounded-xl p-6 mb-6"
-                                >
-                                    <div className="flex items-start gap-3">
-                                        <Lightbulb className="w-6 h-6 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-1" />
-                                        <div>
-                                            <p className="font-semibold text-yellow-900 dark:text-yellow-200 mb-2">Grammar Tip</p>
-                                            <p className="text-sm text-yellow-800 dark:text-yellow-300">{currentItem.hint}</p>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-12 mb-6 text-center shadow-lg">
+                            <div className="flex items-center justify-center gap-2 mb-4">
+                                <span className={`text-xs font-medium px-3 py-1 rounded-full ${currentItem.type === 'kanji'
+                                        ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+                                        : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300'
+                                    }`}>
+                                    {currentItem.type === 'kanji' ? 'Kanji' : 'Vocabulary'}
+                                </span>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    Stage {currentItem.srsStage}
+                                </span>
+                            </div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">What is the reading?</p>
+                            <div className="text-8xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                                {currentItem.question}
+                            </div>
+                            <p className="text-lg text-gray-500 dark:text-gray-400">
+                                {currentItem.meaning}
+                            </p>
+                        </div>
 
                         {/* Answer Form */}
                         {!showFeedback ? (
@@ -343,16 +281,17 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                                     type="text"
                                     value={userAnswer}
                                     onChange={(e) => setUserAnswer(e.target.value)}
-                                    placeholder={currentItem.type === 'grammar' ? "Type the particle (e.g., 'wa', 'wo')" : "Type in romaji (e.g., 'a', 'ka')"}
+                                    placeholder="Type the reading in romaji..."
                                     autoFocus
-                                    className="w-full px-6 py-4 text-2xl text-center border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                                    disabled={isSubmitting}
+                                    className="w-full px-6 py-4 text-2xl text-center border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 disabled:opacity-50"
                                 />
                                 <button
                                     type="submit"
-                                    disabled={!userAnswer.trim()}
+                                    disabled={!userAnswer.trim() || isSubmitting}
                                     className="w-full px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-lg font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                                 >
-                                    Check Answer
+                                    {isSubmitting ? 'Checking...' : 'Check Answer'}
                                 </button>
                             </form>
                         ) : (
@@ -379,10 +318,23 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                                 </div>
 
                                 {!isCorrect && (
-                                    <p className="text-lg text-gray-700 dark:text-gray-300 mb-6 text-center">
-                                        The correct answer is: <span className="font-bold">{currentItem.answer}</span>
+                                    <p className="text-lg text-gray-700 dark:text-gray-300 mb-4 text-center">
+                                        Correct answer: <span className="font-bold">{currentItem.answer}</span>
+                                        {currentItem.alternatives && currentItem.alternatives.length > 0 && (
+                                            <span className="text-sm text-gray-500 dark:text-gray-400 block mt-1">
+                                                Also accepted: {currentItem.alternatives.join(', ')}
+                                            </span>
+                                        )}
                                     </p>
                                 )}
+
+                                <div className="text-center text-sm text-gray-600 dark:text-gray-400 mb-6">
+                                    <p>
+                                        {isCorrect ? 'SRS Stage increased to' : 'SRS Stage decreased to'}{' '}
+                                        <span className="font-semibold">{newStage}</span>
+                                        {' '}→ Next review in {getIntervalDescription(newStage)}
+                                    </p>
+                                </div>
 
                                 <button
                                     onClick={handleNext}

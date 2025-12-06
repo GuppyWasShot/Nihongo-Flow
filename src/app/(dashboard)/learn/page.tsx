@@ -1,5 +1,5 @@
 import { db } from '../../../lib/db';
-import { courses, units, lessons, userProfiles } from '../../../lib/db/schema';
+import { courses, userProfiles } from '../../../lib/db/schema';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -80,40 +80,40 @@ export default async function LearnPage() {
             {/* Stats Bar */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 {/* Streak Counter */}
-                <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl border-2 border-orange-200 p-6">
+                <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-2xl border-2 border-orange-200 dark:border-orange-800 p-6 transition-colors duration-200">
                     <div className="flex items-center gap-4">
                         <div className="flex-shrink-0">
                             <Flame className="w-12 h-12 text-orange-500 animate-pulse" />
                         </div>
                         <div>
-                            <p className="text-3xl font-bold text-gray-900">{userStreak}</p>
-                            <p className="text-sm text-gray-600">Day Streak 🔥</p>
+                            <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{userStreak}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Day Streak 🔥</p>
                         </div>
                     </div>
                 </div>
 
                 {/* XP Total */}
-                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl border-2 border-indigo-200 p-6">
+                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-2xl border-2 border-indigo-200 dark:border-indigo-800 p-6 transition-colors duration-200">
                     <div className="flex items-center gap-4">
                         <div className="flex-shrink-0">
-                            <Zap className="w-12 h-12 text-indigo-500" />
+                            <Zap className="w-12 h-12 text-indigo-500 dark:text-indigo-400" />
                         </div>
                         <div>
-                            <p className="text-3xl font-bold text-gray-900">{userXp}</p>
-                            <p className="text-sm text-gray-600">Total XP</p>
+                            <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{userXp}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Total XP</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Level */}
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border-2 border-green-200 p-6">
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl border-2 border-green-200 dark:border-green-800 p-6 transition-colors duration-200">
                     <div className="flex items-center gap-4">
                         <div className="flex-shrink-0">
-                            <Trophy className="w-12 h-12 text-green-500" />
+                            <Trophy className="w-12 h-12 text-green-500 dark:text-green-400" />
                         </div>
                         <div>
-                            <p className="text-3xl font-bold text-gray-900">{userLevel}</p>
-                            <p className="text-sm text-gray-600">Level</p>
+                            <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{userLevel}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Level</p>
                         </div>
                     </div>
                 </div>
@@ -123,7 +123,7 @@ export default async function LearnPage() {
             <div className="mb-8">
                 <Link
                     href="/learn/n5"
-                    className="group block bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                    className="group block bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-500 dark:to-purple-500 rounded-2xl p-6 hover:from-indigo-700 hover:to-purple-700 dark:hover:from-indigo-600 dark:hover:to-purple-600 transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
                 >
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -146,8 +146,8 @@ export default async function LearnPage() {
 
             {/* Header */}
             <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Courses</h2>
-                <p className="text-gray-600">Track your progress across all JLPT levels</p>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Your Courses</h2>
+                <p className="text-gray-600 dark:text-gray-400">Track your progress across all JLPT levels</p>
             </div>
 
             {/* Courses with Progress Bars */}
@@ -158,17 +158,17 @@ export default async function LearnPage() {
                         href={`/learn/${course.level.toLowerCase()}`}
                         className="group"
                     >
-                        <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 hover:border-indigo-500 hover:shadow-xl transition-all duration-200">
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6 hover:border-indigo-500 dark:hover:border-indigo-400 hover:shadow-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
                             {/* Course Icon & Title */}
                             <div className="flex items-center gap-4 mb-4">
                                 <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl group-hover:scale-110 transition-transform duration-200">
                                     <BookOpen className="w-7 h-7 text-white" />
                                 </div>
                                 <div className="flex-1">
-                                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                                         {course.title}
                                     </h3>
-                                    <span className="inline-block mt-1 px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-semibold">
+                                    <span className="inline-block mt-1 px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-xs font-semibold">
                                         JLPT {course.level}
                                     </span>
                                 </div>
@@ -176,7 +176,7 @@ export default async function LearnPage() {
 
                             {/* Description */}
                             {course.description && (
-                                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
                                     {course.description}
                                 </p>
                             )}
@@ -184,12 +184,12 @@ export default async function LearnPage() {
                             {/* Progress Bar */}
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-600">Progress</span>
-                                    <span className="font-semibold text-gray-900">
+                                    <span className="text-gray-600 dark:text-gray-400">Progress</span>
+                                    <span className="font-semibold text-gray-900 dark:text-gray-100">
                                         {course.completedUnits} / {course.totalUnits} units
                                     </span>
                                 </div>
-                                <div className="bg-gray-100 rounded-full h-3 overflow-hidden">
+                                <div className="bg-gray-100 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
                                     <div
                                         className="bg-gradient-to-r from-indigo-600 to-purple-600 h-full transition-all duration-500"
                                         style={{ width: `${course.progressPercentage}%` }}
@@ -204,11 +204,11 @@ export default async function LearnPage() {
             {/* Empty State */}
             {coursesWithProgress.length === 0 && (
                 <div className="text-center py-12">
-                    <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    <BookOpen className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
                         No Courses Available
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 dark:text-gray-400">
                         Courses will appear here once they are added to the database.
                     </p>
                 </div>

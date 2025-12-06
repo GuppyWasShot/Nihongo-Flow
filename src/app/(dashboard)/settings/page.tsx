@@ -6,6 +6,7 @@ import { userProfiles } from '../../../lib/db/schema';
 import { eq } from 'drizzle-orm';
 import SettingsForm from './SettingsForm';
 import { User, Calendar } from 'lucide-react';
+import { ThemeToggleWithLabel } from '../../../components/ThemeToggle';
 
 async function getUserProfile() {
     const cookieStore = await cookies();
@@ -67,24 +68,24 @@ export default async function SettingsPage() {
                     <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl">
                         <User className="w-6 h-6 text-white" />
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900">Account Settings</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Account Settings</h1>
                 </div>
-                <p className="text-gray-600">Manage your profile and preferences</p>
+                <p className="text-gray-600 dark:text-gray-400">Manage your profile and preferences</p>
             </div>
 
             {/* Member Since Badge */}
             <div className="mb-6">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-full">
-                    <Calendar className="w-4 h-4 text-indigo-600" />
-                    <span className="text-sm font-medium text-indigo-900">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 border border-indigo-200 dark:border-indigo-700 rounded-full">
+                    <Calendar className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                    <span className="text-sm font-medium text-indigo-900 dark:text-indigo-300">
                         Member since {memberSince}
                     </span>
                 </div>
             </div>
 
             {/* Settings Card */}
-            <div className="bg-white rounded-2xl border-2 border-gray-200 p-8 shadow-sm">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">Profile Information</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-8 shadow-sm transition-colors duration-200">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Profile Information</h2>
 
                 <SettingsForm
                     initialData={{
@@ -97,29 +98,37 @@ export default async function SettingsPage() {
                 />
             </div>
 
-            {/* Additional Settings Sections */}
-            <div className="mt-6 bg-white rounded-2xl border-2 border-gray-200 p-8 shadow-sm">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Preferences</h2>
+            {/* Appearance Settings */}
+            <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-8 shadow-sm transition-colors duration-200">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Appearance</h2>
                 <div className="space-y-4">
-                    <div className="flex items-center justify-between py-3 border-b border-gray-200">
+                    <ThemeToggleWithLabel />
+                </div>
+            </div>
+
+            {/* Additional Settings Sections */}
+            <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-8 shadow-sm transition-colors duration-200">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Preferences</h2>
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
                         <div>
-                            <p className="font-medium text-gray-900">Email Notifications</p>
-                            <p className="text-sm text-gray-600">Receive study reminders and updates</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">Email Notifications</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Receive study reminders and updates</p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" className="sr-only peer" defaultChecked />
-                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                            <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                         </label>
                     </div>
 
                     <div className="flex items-center justify-between py-3">
                         <div>
-                            <p className="font-medium text-gray-900">Study Reminders</p>
-                            <p className="text-sm text-gray-600">Daily reminders to practice Japanese</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">Study Reminders</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Daily reminders to practice Japanese</p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" className="sr-only peer" />
-                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                            <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                         </label>
                     </div>
                 </div>

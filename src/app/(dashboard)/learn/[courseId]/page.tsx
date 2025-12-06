@@ -1,7 +1,7 @@
 import { db } from '../../../../lib/db';
 import { courses, units, lessons, type Unit, type Lesson } from '../../../../lib/db/schema';
 import { eq } from 'drizzle-orm';
-import { BookOpen, Lock, CheckCircle2, Circle } from 'lucide-react';
+import { BookOpen, Lock, CheckCircle2, Circle, ChevronRight, Home } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -59,6 +59,19 @@ export default async function CoursePage({ params }: CoursePageProps) {
 
     return (
         <div className="max-w-6xl mx-auto">
+            {/* Breadcrumb */}
+            <nav className="flex items-center gap-2 text-sm mb-6">
+                <Link
+                    href="/learn"
+                    className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                >
+                    <Home className="w-4 h-4" />
+                    <span>Dashboard</span>
+                </Link>
+                <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                <span className="text-gray-900 dark:text-gray-100 font-medium">{course.title}</span>
+            </nav>
+
             {/* Course Header */}
             <div className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
@@ -66,19 +79,19 @@ export default async function CoursePage({ params }: CoursePageProps) {
                         <BookOpen className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">{course.title}</h1>
-                        <p className="text-gray-600">{course.description}</p>
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{course.title}</h1>
+                        <p className="text-gray-600 dark:text-gray-400">{course.description}</p>
                     </div>
                 </div>
 
                 {/* Progress Bar */}
-                <div className="bg-gray-100 rounded-full h-3 overflow-hidden">
+                <div className="bg-gray-100 dark:bg-gray-800 rounded-full h-3 overflow-hidden">
                     <div
                         className="bg-gradient-to-r from-indigo-600 to-purple-600 h-full transition-all duration-500"
                         style={{ width: `${progressPercentage}%` }}
                     />
                 </div>
-                <p className="text-sm text-gray-600 mt-2">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                     {completedUnits} of {totalUnits} units completed
                 </p>
             </div>
@@ -88,43 +101,43 @@ export default async function CoursePage({ params }: CoursePageProps) {
                 {unitsWithStatus.map((unit, unitIndex) => (
                     <div
                         key={unit.id}
-                        className={`bg-white rounded-2xl border-2 p-6 transition-all duration-200 ${unit.isUnlocked
-                            ? 'border-gray-200 hover:border-indigo-300 hover:shadow-lg'
-                            : 'border-gray-200 opacity-60'
+                        className={`bg-white dark:bg-gray-800 rounded-2xl border-2 p-6 transition-all duration-200 ${unit.isUnlocked
+                            ? 'border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-lg'
+                            : 'border-gray-200 dark:border-gray-700 opacity-60'
                             }`}
                     >
                         {/* Unit Header */}
                         <div className="flex items-start justify-between mb-4">
                             <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-2">
-                                    <h2 className="text-2xl font-bold text-gray-900">
+                                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                                         Unit {unit.order}: {unit.title}
                                     </h2>
                                     {unit.isUnlocked ? (
                                         <CheckCircle2 className="w-6 h-6 text-green-500" />
                                     ) : (
-                                        <Lock className="w-6 h-6 text-gray-400" />
+                                        <Lock className="w-6 h-6 text-gray-400 dark:text-gray-500" />
                                     )}
                                 </div>
                                 {unit.description && (
-                                    <p className="text-gray-600 text-sm">{unit.description}</p>
+                                    <p className="text-gray-600 dark:text-gray-400 text-sm">{unit.description}</p>
                                 )}
                             </div>
 
                             {/* Unit Progress */}
                             <div className="text-right ml-4">
-                                <p className="text-sm font-medium text-gray-900">
+                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                     {unit.lessonsCompleted} / {unit.totalLessons}
                                 </p>
-                                <p className="text-xs text-gray-500">lessons</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">lessons</p>
                             </div>
                         </div>
 
                         {/* Locked Overlay */}
                         {!unit.isUnlocked && (
-                            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                                <Lock className="w-5 h-5 text-gray-400" />
-                                <p className="text-sm text-gray-600">
+                            <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700">
+                                <Lock className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
                                     Complete Unit {unitIndex} to unlock this unit
                                 </p>
                             </div>
@@ -139,14 +152,14 @@ export default async function CoursePage({ params }: CoursePageProps) {
                                         href={`/learn/${courseId}/unit/${unit.id}/lesson/${lesson.id}`}
                                         className="group"
                                     >
-                                        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-4 border-2 border-transparent hover:border-indigo-300 hover:shadow-md transition-all duration-200">
+                                        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-xl p-4 border-2 border-transparent hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-md transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
                                             <div className="flex items-center justify-between mb-2">
-                                                <Circle className="w-4 h-4 text-gray-400 group-hover:text-indigo-600" />
-                                                <span className="text-xs font-medium text-gray-500">
+                                                <Circle className="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
+                                                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
                                                     {lessonIndex + 1}
                                                 </span>
                                             </div>
-                                            <p className="text-sm font-medium text-gray-900 line-clamp-2">
+                                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-2">
                                                 {lesson.title}
                                             </p>
                                         </div>
@@ -157,7 +170,7 @@ export default async function CoursePage({ params }: CoursePageProps) {
 
                         {/* Empty State for No Lessons */}
                         {unit.isUnlocked && unit.totalLessons === 0 && (
-                            <div className="text-center py-8 text-gray-500">
+                            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                                 <p className="text-sm">No lessons available yet</p>
                             </div>
                         )}
@@ -168,11 +181,11 @@ export default async function CoursePage({ params }: CoursePageProps) {
             {/* Empty State */}
             {courseUnits.length === 0 && (
                 <div className="text-center py-12">
-                    <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    <BookOpen className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
                         No Units Available
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 dark:text-gray-400">
                         Units will appear here once they are added to this course.
                     </p>
                 </div>
