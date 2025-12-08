@@ -1,11 +1,11 @@
 import { db } from '../../../lib/db';
-import { courses, userProfiles } from '../../../lib/db/schema';
+import { courses, userProfiles, units, lessons, userProgress } from '../../../lib/db/schema';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Flame, Trophy, Zap, ArrowRight, BookOpen, Sparkles } from 'lucide-react';
 import Link from 'next/link';
-import { eq } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 
 async function getUserData() {
     const cookieStore = await cookies();
@@ -57,15 +57,57 @@ export default async function LearnPage() {
     const { user, profile } = await getUserData();
 
     // Fetch all courses
-    const allCourses = await db.select().from(courses);
+    const allCourses = await db.select().from(courses).orderBy(courses.order);
 
-    // Calculate course progress (mock for now - TODO: calculate from actual completion)
-    const coursesWithProgress = allCourses.map(course => ({
-        ...course,
-        completedUnits: 0, // TODO: Calculate from user_progress
-        totalUnits: 3, // TODO: Get actual count from units table
-        progressPercentage: 0,
-    }));
+    // Fetch all units and lessons for progress calculation
+    const allUnits = await db.select().from(units);
+    const allLessons = await db.select().from(lessons);
+
+    // Get all lesson IDs
+    const lessonIds = allLessons.map(l => l.id);
+
+    // Fetch user's completed lessons (lessons in user_progress = completed)
+    const completedLessonProgress = lessonIds.length > 0
+        ? await db.select().from(userProgress).where(
+            and(
+                eq(userProgress.userId, user.id),
+                eq(userProgress.itemType, 'lesson'),
+                inArray(userProgress.itemId, lessonIds)
+            )
+        )
+        : [];
+
+    const completedLessonIds = new Set(completedLessonProgress.map(p => p.itemId));
+
+    // Calculate course progress from actual data
+    const coursesWithProgress = allCourses.map(course => {
+        const courseUnits = allUnits.filter(u => u.courseId === course.id);
+        const courseLessons = allLessons.filter(l =>
+            courseUnits.some(u => u.id === l.unitId)
+        );
+
+        const totalLessons = courseLessons.length;
+        const completedLessons = courseLessons.filter(l => completedLessonIds.has(l.id)).length;
+
+        // A unit is complete if all its lessons are complete
+        const completedUnits = courseUnits.filter(unit => {
+            const unitLessons = courseLessons.filter(l => l.unitId === unit.id);
+            return unitLessons.length > 0 && unitLessons.every(l => completedLessonIds.has(l.id));
+        }).length;
+
+        const progressPercentage = totalLessons > 0
+            ? Math.round((completedLessons / totalLessons) * 100)
+            : 0;
+
+        return {
+            ...course,
+            completedUnits,
+            totalUnits: courseUnits.length,
+            completedLessons,
+            totalLessons,
+            progressPercentage,
+        };
+    });
 
     const userXp = profile?.totalXp ?? 0;
     const userStreak = profile?.studyStreak ?? 0;

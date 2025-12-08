@@ -1,13 +1,16 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Search, Filter, X } from 'lucide-react';
+import { Search, Filter } from 'lucide-react';
 import Link from 'next/link';
-import type { Kanji, Vocabulary } from '../../../lib/db/schema';
+import * as wanakana from 'wanakana';
+import type { Kanji, Vocabulary, KanaCharacter } from '../../../lib/db/schema';
 
 interface LibraryTabsProps {
     kanji: (Kanji & { srsStage: number | null })[];
     vocabulary: (Vocabulary & { srsStage: number | null })[];
+    hiragana: KanaCharacter[];
+    katakana: KanaCharacter[];
 }
 
 type SRSFilter = 'all' | 'new' | 'learning' | 'mastered';
@@ -26,8 +29,8 @@ function getSRSBadge(srsStage: number | null) {
     }
 }
 
-export default function LibraryTabs({ kanji, vocabulary }: LibraryTabsProps) {
-    const [activeTab, setActiveTab] = useState<'kanji' | 'vocabulary'>('kanji');
+export default function LibraryTabs({ kanji, vocabulary, hiragana, katakana }: LibraryTabsProps) {
+    const [activeTab, setActiveTab] = useState<'hiragana' | 'katakana' | 'kanji' | 'vocabulary'>('hiragana');
     const [searchQuery, setSearchQuery] = useState('');
     const [srsFilter, setSrsFilter] = useState<SRSFilter>('all');
     const [jlptFilter, setJlptFilter] = useState<JLPTFilter>('all');
@@ -79,11 +82,18 @@ export default function LibraryTabs({ kanji, vocabulary }: LibraryTabsProps) {
         let result = kanji.filter(k => {
             if (!searchQuery) return true;
             const query = searchQuery.toLowerCase();
+            // Convert romaji to kana for searching
+            const hiraganaQuery = wanakana.isRomaji(query) ? wanakana.toHiragana(query) : query;
+            const katakanaQuery = wanakana.isRomaji(query) ? wanakana.toKatakana(query) : query;
+
             return (
                 k.character.includes(query) ||
                 k.meanings.some(m => m.toLowerCase().includes(query)) ||
                 k.onyomi?.some(o => o.toLowerCase().includes(query)) ||
-                k.kunyomi?.some(k => k.toLowerCase().includes(query))
+                k.kunyomi?.some(ku => ku.toLowerCase().includes(query)) ||
+                // Search with romaji converted to kana
+                k.onyomi?.some(o => o.includes(hiraganaQuery) || o.includes(katakanaQuery)) ||
+                k.kunyomi?.some(ku => ku.includes(hiraganaQuery))
             );
         });
         result = filterBySRS(result);
@@ -96,10 +106,19 @@ export default function LibraryTabs({ kanji, vocabulary }: LibraryTabsProps) {
         let result = vocabulary.filter(v => {
             if (!searchQuery) return true;
             const query = searchQuery.toLowerCase();
+            // Convert romaji to kana for searching
+            const hiraganaQuery = wanakana.isRomaji(query) ? wanakana.toHiragana(query) : query;
+            const katakanaQuery = wanakana.isRomaji(query) ? wanakana.toKatakana(query) : query;
+
             return (
                 v.writing.toLowerCase().includes(query) ||
                 v.reading.toLowerCase().includes(query) ||
-                v.meaning.toLowerCase().includes(query)
+                v.meaning.toLowerCase().includes(query) ||
+                // Search with romaji converted to kana
+                v.writing.includes(hiraganaQuery) ||
+                v.reading.includes(hiraganaQuery) ||
+                v.writing.includes(katakanaQuery) ||
+                v.reading.includes(katakanaQuery)
             );
         });
         result = filterBySRS(result);
@@ -121,10 +140,28 @@ export default function LibraryTabs({ kanji, vocabulary }: LibraryTabsProps) {
     return (
         <div>
             {/* Tabs */}
-            <div className="flex items-center gap-6 mb-6 border-b border-slate-200 dark:border-slate-700">
+            <div className="flex items-center gap-4 mb-6 border-b border-slate-200 dark:border-slate-700 overflow-x-auto">
+                <button
+                    onClick={() => setActiveTab('hiragana')}
+                    className={`px-2 py-4 font-medium transition-all duration-200 whitespace-nowrap ${activeTab === 'hiragana'
+                        ? 'text-emerald-600 dark:text-emerald-400 border-b-2 border-emerald-500 dark:border-emerald-400'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                        }`}
+                >
+                    Hiragana ({hiragana.length})
+                </button>
+                <button
+                    onClick={() => setActiveTab('katakana')}
+                    className={`px-2 py-4 font-medium transition-all duration-200 whitespace-nowrap ${activeTab === 'katakana'
+                        ? 'text-emerald-600 dark:text-emerald-400 border-b-2 border-emerald-500 dark:border-emerald-400'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                        }`}
+                >
+                    Katakana ({katakana.length})
+                </button>
                 <button
                     onClick={() => setActiveTab('kanji')}
-                    className={`px-2 py-4 font-medium transition-all duration-200 ${activeTab === 'kanji'
+                    className={`px-2 py-4 font-medium transition-all duration-200 whitespace-nowrap ${activeTab === 'kanji'
                         ? 'text-emerald-600 dark:text-emerald-400 border-b-2 border-emerald-500 dark:border-emerald-400'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                         }`}
@@ -133,7 +170,7 @@ export default function LibraryTabs({ kanji, vocabulary }: LibraryTabsProps) {
                 </button>
                 <button
                     onClick={() => setActiveTab('vocabulary')}
-                    className={`px-2 py-4 font-medium transition-all duration-200 ${activeTab === 'vocabulary'
+                    className={`px-2 py-4 font-medium transition-all duration-200 whitespace-nowrap ${activeTab === 'vocabulary'
                         ? 'text-emerald-600 dark:text-emerald-400 border-b-2 border-emerald-500 dark:border-emerald-400'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                         }`}
@@ -248,11 +285,135 @@ export default function LibraryTabs({ kanji, vocabulary }: LibraryTabsProps) {
                 </div>
             )}
 
-            {/* Content */}
-            <div className="mb-8">
-            </div>
+            {/* Hiragana Grid - Organized by sections */}
+            {activeTab === 'hiragana' && (() => {
+                const basic = hiragana.filter(k => ['a', 'ka', 'sa', 'ta', 'na', 'ha', 'ma', 'ya', 'ra', 'wa', 'n'].includes(k.row));
+                const dakuten = hiragana.filter(k => ['ga', 'za', 'da', 'ba'].includes(k.row));
+                const handakuten = hiragana.filter(k => k.row === 'pa');
 
-            {/* Content */}
+                const rowOrder = ['a', 'ka', 'sa', 'ta', 'na', 'ha', 'ma', 'ya', 'ra', 'wa', 'n'];
+                const sortByRow = (a: typeof hiragana[0], b: typeof hiragana[0]) => {
+                    const rowDiff = rowOrder.indexOf(a.row) - rowOrder.indexOf(b.row);
+                    if (rowDiff !== 0) return rowDiff;
+                    return ['a', 'i', 'u', 'e', 'o', 'n'].indexOf(a.column) - ['a', 'i', 'u', 'e', 'o', 'n'].indexOf(b.column);
+                };
+
+                const dakutenRowOrder = ['ga', 'za', 'da', 'ba'];
+                const sortDakuten = (a: typeof hiragana[0], b: typeof hiragana[0]) => {
+                    const rowDiff = dakutenRowOrder.indexOf(a.row) - dakutenRowOrder.indexOf(b.row);
+                    if (rowDiff !== 0) return rowDiff;
+                    return ['a', 'i', 'u', 'e', 'o'].indexOf(a.column) - ['a', 'i', 'u', 'e', 'o'].indexOf(b.column);
+                };
+
+                return (
+                    <div className="space-y-8">
+                        {/* Basic Hiragana */}
+                        <div>
+                            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-4">Basic Hiragana (46 characters)</h3>
+                            <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+                                {basic.sort(sortByRow).map((k) => (
+                                    <div key={k.id} className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700/50 p-3 hover:border-emerald-400 dark:hover:border-emerald-500/50 hover:shadow-md transition-all text-center group">
+                                        <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">{k.character}</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">{k.romaji}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Dakuten */}
+                        <div>
+                            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">Dakuten 濁点 <span className="text-sm font-normal text-slate-500">(voiced sounds - tenten ゛)</span></h3>
+                            <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+                                {dakuten.sort(sortDakuten).map((k) => (
+                                    <div key={k.id} className="bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-700/50 p-3 hover:border-amber-400 dark:hover:border-amber-500/50 hover:shadow-md transition-all text-center group">
+                                        <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100 group-hover:text-amber-600 dark:group-hover:text-amber-400">{k.character}</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">{k.romaji}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Handakuten */}
+                        <div>
+                            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">Handakuten 半濁点 <span className="text-sm font-normal text-slate-500">(P-sounds - maru ゜)</span></h3>
+                            <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+                                {handakuten.map((k) => (
+                                    <div key={k.id} className="bg-rose-50 dark:bg-rose-900/20 rounded-lg border border-rose-200 dark:border-rose-700/50 p-3 hover:border-rose-400 dark:hover:border-rose-500/50 hover:shadow-md transition-all text-center group">
+                                        <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100 group-hover:text-rose-600 dark:group-hover:text-rose-400">{k.character}</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">{k.romaji}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
+
+            {/* Katakana Grid - Organized by sections */}
+            {activeTab === 'katakana' && (() => {
+                const basic = katakana.filter(k => ['a', 'ka', 'sa', 'ta', 'na', 'ha', 'ma', 'ya', 'ra', 'wa', 'n'].includes(k.row));
+                const dakuten = katakana.filter(k => ['ga', 'za', 'da', 'ba'].includes(k.row));
+                const handakuten = katakana.filter(k => k.row === 'pa');
+
+                const rowOrder = ['a', 'ka', 'sa', 'ta', 'na', 'ha', 'ma', 'ya', 'ra', 'wa', 'n'];
+                const sortByRow = (a: typeof katakana[0], b: typeof katakana[0]) => {
+                    const rowDiff = rowOrder.indexOf(a.row) - rowOrder.indexOf(b.row);
+                    if (rowDiff !== 0) return rowDiff;
+                    return ['a', 'i', 'u', 'e', 'o', 'n'].indexOf(a.column) - ['a', 'i', 'u', 'e', 'o', 'n'].indexOf(b.column);
+                };
+
+                const dakutenRowOrder = ['ga', 'za', 'da', 'ba'];
+                const sortDakuten = (a: typeof katakana[0], b: typeof katakana[0]) => {
+                    const rowDiff = dakutenRowOrder.indexOf(a.row) - dakutenRowOrder.indexOf(b.row);
+                    if (rowDiff !== 0) return rowDiff;
+                    return ['a', 'i', 'u', 'e', 'o'].indexOf(a.column) - ['a', 'i', 'u', 'e', 'o'].indexOf(b.column);
+                };
+
+                return (
+                    <div className="space-y-8">
+                        {/* Basic Katakana */}
+                        <div>
+                            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-4">Basic Katakana (46 characters)</h3>
+                            <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+                                {basic.sort(sortByRow).map((k) => (
+                                    <div key={k.id} className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700/50 p-3 hover:border-teal-400 dark:hover:border-teal-500/50 hover:shadow-md transition-all text-center group">
+                                        <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100 group-hover:text-teal-600 dark:group-hover:text-teal-400">{k.character}</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">{k.romaji}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Dakuten */}
+                        <div>
+                            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">Dakuten 濁点 <span className="text-sm font-normal text-slate-500">(voiced sounds - tenten ゛)</span></h3>
+                            <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+                                {dakuten.sort(sortDakuten).map((k) => (
+                                    <div key={k.id} className="bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-700/50 p-3 hover:border-amber-400 dark:hover:border-amber-500/50 hover:shadow-md transition-all text-center group">
+                                        <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100 group-hover:text-amber-600 dark:group-hover:text-amber-400">{k.character}</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">{k.romaji}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Handakuten */}
+                        <div>
+                            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">Handakuten 半濁点 <span className="text-sm font-normal text-slate-500">(P-sounds - maru ゜)</span></h3>
+                            <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+                                {handakuten.map((k) => (
+                                    <div key={k.id} className="bg-rose-50 dark:bg-rose-900/20 rounded-lg border border-rose-200 dark:border-rose-700/50 p-3 hover:border-rose-400 dark:hover:border-rose-500/50 hover:shadow-md transition-all text-center group">
+                                        <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100 group-hover:text-rose-600 dark:group-hover:text-rose-400">{k.character}</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">{k.romaji}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
+
+            {/* Kanji Grid */}
             {activeTab === 'kanji' && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                     {filteredKanji.map((k) => (

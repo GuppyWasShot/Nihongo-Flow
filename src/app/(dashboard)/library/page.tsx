@@ -1,5 +1,5 @@
 import { db } from '../../../lib/db';
-import { kanji, vocabulary, userProgress } from '../../../lib/db/schema';
+import { kanji, vocabulary, userProgress, kanaCharacters } from '../../../lib/db/schema';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -37,9 +37,14 @@ async function getUserId() {
 export default async function LibraryPage() {
     const userId = await getUserId();
 
-    // Fetch ALL kanji and vocabulary
+    // Fetch ALL kanji, vocabulary, and kana
     const allKanji = await db.select().from(kanji);
     const allVocabulary = await db.select().from(vocabulary);
+    const allKana = await db.select().from(kanaCharacters);
+
+    // Separate hiragana and katakana
+    const hiragana = allKana.filter(k => k.type === 'hiragana');
+    const katakana = allKana.filter(k => k.type === 'katakana');
 
     // Fetch user progress for SRS status
     const progress = await db.select()
@@ -77,7 +82,7 @@ export default async function LibraryPage() {
                         </div>
                         <div>
                             <h1 className="text-3xl font-semibold text-slate-900 dark:text-slate-100">Study Library</h1>
-                            <p className="text-slate-600 dark:text-slate-400">Browse and review kanji and vocabulary</p>
+                            <p className="text-slate-600 dark:text-slate-400">Browse kana, kanji, and vocabulary</p>
                         </div>
                     </div>
 
@@ -97,6 +102,8 @@ export default async function LibraryPage() {
             <LibraryTabs
                 kanji={kanjiWithProgress}
                 vocabulary={vocabularyWithProgress}
+                hiragana={hiragana}
+                katakana={katakana}
             />
         </div>
     );

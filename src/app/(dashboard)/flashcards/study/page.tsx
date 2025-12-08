@@ -1,30 +1,39 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import FlashcardViewer from '../../../../components/flashcard/FlashcardViewer';
 import { motion } from 'framer-motion';
-import { Layers, Check, RotateCcw, Home, TrendingUp, Clock } from 'lucide-react';
+import { Layers, Check, RotateCcw, Home, TrendingUp, Save } from 'lucide-react';
 import Link from 'next/link';
+import { updateSRS, saveFlashcardProgress } from '../actions';
 
 type StudyMode = 'recognition' | 'production' | 'cram' | 'test';
 
 export default function FlashcardStudyPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
+    const [isPending, startTransition] = useTransition();
     const [items, setItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [mode, setMode] = useState<StudyMode>('recognition');
     const [sessionStarted, setSessionStarted] = useState(false);
-    const [results, setResults] = useState<{ correct: number; incorrect: number } | null>(null);
+    const [results, setResults] = useState<{ correct: number; incorrect: number; srsUpdated?: boolean } | null>(null);
+    const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
-    const type = searchParams.get('type') || 'kanji';
+    const type = (searchParams.get('type') || 'kanji') as 'kanji' | 'vocabulary';
     const level = searchParams.get('level') || 'N5';
+    const unitId = searchParams.get('unit');
 
     useEffect(() => {
         async function loadItems() {
             try {
-                const res = await fetch(`/api/flashcards?type=${type}&level=${level}`);
+                // Build URL with optional unit param
+                let url = `/api/flashcards?type=${type}&level=${level}`;
+                if (unitId) {
+                    url += `&unit=${unitId}`;
+                }
+                const res = await fetch(url);
                 const data = await res.json();
                 setItems(data.items || []);
             } catch (e) {
@@ -33,10 +42,41 @@ export default function FlashcardStudyPage() {
             setLoading(false);
         }
         loadItems();
-    }, [type, level]);
+    }, [type, level, unitId]);
 
-    const handleComplete = (res: { correct: number; incorrect: number }) => {
-        setResults(res);
+    const handleComplete = async (res: { correct: number; incorrect: number; details: { id: number; correct: boolean }[] }) => {
+        // Update SRS for non-cram modes
+        if (mode !== 'cram') {
+            startTransition(async () => {
+                const srsResults = res.details.map(d => ({
+                    id: d.id,
+                    type,
+                    correct: d.correct,
+                }));
+                await updateSRS(srsResults);
+                setResults({ ...res, srsUpdated: true });
+            });
+        } else {
+            setResults({ ...res, srsUpdated: false });
+        }
+    };
+
+    const handleSaveAndQuit = async (completedResults: { id: number; correct: boolean }[], remainingIds: number[]) => {
+        if (mode !== 'cram') {
+            startTransition(async () => {
+                const result = await saveFlashcardProgress({
+                    type,
+                    level,
+                    completedIds: completedResults.map(r => r.id),
+                    results: completedResults,
+                });
+                setSaveMessage(result.message);
+                // Redirect after short delay
+                setTimeout(() => router.push('/flashcards'), 1500);
+            });
+        } else {
+            router.push('/flashcards');
+        }
     };
 
     const handleRestart = () => {
@@ -52,6 +92,29 @@ export default function FlashcardStudyPage() {
                     <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
                     <p className="text-slate-500 dark:text-slate-400">Loading cards...</p>
                 </div>
+            </div>
+        );
+    }
+
+    // Save message
+    if (saveMessage) {
+        return (
+            <div className="max-w-xl mx-auto flex items-center justify-center min-h-[60vh]">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700/50 p-8 text-center"
+                >
+                    <div className="flex justify-center mb-4">
+                        <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                            <Save className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                    </div>
+                    <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                        {saveMessage}
+                    </h2>
+                    <p className="text-slate-500 dark:text-slate-400">Redirecting to flashcards...</p>
+                </motion.div>
             </div>
         );
     }
@@ -85,9 +148,21 @@ export default function FlashcardStudyPage() {
                     <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
                         Session Complete!
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-400 mb-8">
+                    <p className="text-slate-500 dark:text-slate-400 mb-2">
                         {accuracy >= 80 ? 'Great job!' : accuracy >= 60 ? 'Good progress!' : 'Keep practicing!'}
                     </p>
+
+                    {/* SRS update indicator */}
+                    {results.srsUpdated && (
+                        <p className="text-sm text-emerald-600 dark:text-emerald-400 mb-6">
+                            ✓ SRS progress saved
+                        </p>
+                    )}
+                    {!results.srsUpdated && mode === 'cram' && (
+                        <p className="text-sm text-slate-400 mb-6">
+                            Cram mode - SRS not updated
+                        </p>
+                    )}
 
                     <div className="text-5xl font-bold mb-8">
                         <span className={accuracy >= 60 ? 'text-emerald-600' : 'text-rose-600'}>{accuracy}%</span>
@@ -143,10 +218,10 @@ export default function FlashcardStudyPage() {
                     <h2 className="font-medium text-slate-900 dark:text-slate-100 mb-4">Study Mode</h2>
                     <div className="grid grid-cols-2 gap-3">
                         {[
-                            { key: 'recognition', label: 'Recognition', desc: 'See Japanese → recall meaning' },
-                            { key: 'production', label: 'Production', desc: 'See English → recall Japanese' },
-                            { key: 'cram', label: 'Cram', desc: 'Rapid review, no SRS' },
-                            { key: 'test', label: 'Test', desc: 'Graded session' },
+                            { key: 'recognition', label: 'Recognition', desc: 'See Japanese → recall meaning', srs: true },
+                            { key: 'production', label: 'Production', desc: 'See English → recall Japanese', srs: true },
+                            { key: 'cram', label: 'Cram', desc: 'Rapid review, no SRS update', srs: false },
+                            { key: 'test', label: 'Test', desc: 'Graded session with SRS', srs: true },
                         ].map((m) => (
                             <button
                                 key={m.key}
@@ -158,6 +233,11 @@ export default function FlashcardStudyPage() {
                             >
                                 <p className="font-medium text-slate-900 dark:text-slate-100">{m.label}</p>
                                 <p className="text-xs text-slate-500 dark:text-slate-400">{m.desc}</p>
+                                {m.srs && (
+                                    <span className="inline-block mt-1 text-xs text-emerald-600 dark:text-emerald-400">
+                                        ✓ Updates SRS
+                                    </span>
+                                )}
                             </button>
                         ))}
                     </div>
@@ -177,7 +257,21 @@ export default function FlashcardStudyPage() {
     // Active session
     return (
         <div className="max-w-xl mx-auto py-8">
-            <FlashcardViewer items={items} mode={mode} onComplete={handleComplete} />
+            <FlashcardViewer
+                items={items}
+                mode={mode}
+                itemType={type}
+                onComplete={handleComplete}
+                onSaveAndQuit={mode !== 'cram' ? handleSaveAndQuit : undefined}
+            />
+            {isPending && (
+                <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl p-6 flex items-center gap-3">
+                        <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                        <span className="text-slate-700 dark:text-slate-300">Saving progress...</span>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -4,10 +4,9 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { redirect, notFound } from 'next/navigation';
 import { eq } from 'drizzle-orm';
-import { BookOpen, ChevronRight, Lock, CheckCircle, Play } from 'lucide-react';
-import Link from 'next/link';
+import { BookOpen } from 'lucide-react';
 import { Breadcrumb } from '../../../../components/Breadcrumb';
-import { TestOutButton } from './TestOutButton';
+import { CourseUnitsClient } from './CourseUnitsClient';
 
 interface CoursePageProps {
     params: Promise<{
@@ -143,110 +142,42 @@ export default async function CoursePage({ params }: CoursePageProps) {
 
                 {/* Progress Bar */}
                 <div className="mt-8">
-                    <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-emerald-100">Course Progress</span>
-                        <span className="font-medium">0%</span>
-                    </div>
-                    <div className="bg-white/20 rounded-full h-2.5 overflow-hidden">
-                        <div
-                            className="bg-white h-full rounded-full"
-                            style={{ width: '0%' }}
-                        />
-                    </div>
+                    {(() => {
+                        const totalLessons = allLessons.length;
+                        const completedCount = allLessons.filter(l => completedLessonIds.has(l.id)).length;
+                        const progressPercentage = totalLessons > 0
+                            ? Math.round((completedCount / totalLessons) * 100)
+                            : 0;
+                        return (
+                            <>
+                                <div className="flex items-center justify-between text-sm mb-2">
+                                    <span className="text-emerald-100">Course Progress</span>
+                                    <span className="font-medium">{progressPercentage}%</span>
+                                </div>
+                                <div className="bg-white/20 rounded-full h-2.5 overflow-hidden">
+                                    <div
+                                        className="bg-white h-full rounded-full transition-all duration-500"
+                                        style={{ width: `${progressPercentage}%` }}
+                                    />
+                                </div>
+                            </>
+                        );
+                    })()}
                 </div>
             </div>
 
-            {/* Units List */}
-            <div className="space-y-6">
-                {unitsWithProgress.map((unit, unitIdx) => (
-                    <div
-                        key={unit.id}
-                        className={`bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/50 overflow-hidden transition-all duration-300 ${unit.isUnlocked ? 'hover:shadow-lg hover:border-emerald-300 dark:hover:border-emerald-600/50' : 'opacity-70'
-                            }`}
-                    >
-                        {/* Unit Header */}
-                        <div className="p-6 border-b border-slate-100 dark:border-slate-700">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div className={`flex items-center justify-center w-12 h-12 rounded-xl ${unit.isComplete
-                                        ? 'bg-emerald-100 dark:bg-emerald-900/30'
-                                        : unit.isUnlocked
-                                            ? 'bg-emerald-100 dark:bg-emerald-900/30'
-                                            : 'bg-slate-100 dark:bg-slate-700'
-                                        }`}>
-                                        {unit.isComplete ? (
-                                            <CheckCircle className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
-                                        ) : unit.isUnlocked ? (
-                                            <span className="text-xl font-semibold text-emerald-600 dark:text-emerald-400">{unitIdx + 1}</span>
-                                        ) : (
-                                            <Lock className="w-5 h-5 text-slate-400 dark:text-slate-500" />
-                                        )}
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">{unit.title}</h3>
-                                        {unit.description && (
-                                            <p className="text-sm text-slate-500 dark:text-slate-400">{unit.description}</p>
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    {/* Test Out button for unlocked units (except first) */}
-                                    {!unit.isUnlocked && unitIdx > 0 && (
-                                        <TestOutButton unitId={unit.id} unitTitle={unit.title} />
-                                    )}
-                                    <span className="text-sm text-slate-500 dark:text-slate-400">
-                                        {unit.completedLessons} / {unit.totalLessons} lessons
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Lessons List */}
-                        {unit.isUnlocked && (
-                            <div className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {lessonsByUnit.get(unit.id)?.map((lesson) => {
-                                    // All lessons in unlocked units are accessible
-                                    // Completed lessons show checkmark but are still clickable for review
-                                    const isLessonComplete = completedLessonIds.has(lesson.id);
-
-                                    return (
-                                        <Link
-                                            key={lesson.id}
-                                            href={`/learn/${courseId}/unit/${unit.id}/lesson/${lesson.id}`}
-                                            className="flex items-center justify-between px-6 py-5 transition-colors group hover:bg-emerald-50 dark:hover:bg-emerald-900/10 cursor-pointer"
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                <div className={`flex items-center justify-center w-10 h-10 rounded-xl ${isLessonComplete
-                                                        ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
-                                                        : 'bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400'
-                                                    }`}>
-                                                    {isLessonComplete ? (
-                                                        <CheckCircle className="w-5 h-5" />
-                                                    ) : (
-                                                        <Play className="w-4 h-4" />
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <p className="font-medium text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
-                                                        {lesson.title}
-                                                    </p>
-                                                    <p className="text-sm text-slate-500 dark:text-slate-400 capitalize">
-                                                        {lesson.type.replace('_', ' ')}
-                                                        {isLessonComplete && (
-                                                            <span className="ml-2 text-emerald-600 dark:text-emerald-400">• Complete</span>
-                                                        )}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <ChevronRight className="w-5 h-5 text-slate-400 dark:text-slate-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
-                                        </Link>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
-                ))}
-            </div>
+            {/* Units List - Client component for localStorage state */}
+            <CourseUnitsClient
+                courseId={courseId}
+                units={unitsWithProgress}
+                lessonsByUnit={Object.fromEntries(
+                    Array.from(lessonsByUnit.entries()).map(([k, v]) => [
+                        k,
+                        v.map(l => ({ id: l.id, title: l.title, type: l.type }))
+                    ])
+                )}
+                completedLessonIds={Array.from(completedLessonIds)}
+            />
 
             {courseUnits.length === 0 && (
                 <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/50">

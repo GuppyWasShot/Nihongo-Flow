@@ -1,5 +1,6 @@
 /**
  * Hiragana and Katakana character data
+ * Includes basic characters, dakuten (゛) voiced, and handakuten (゜) semi-voiced
  */
 
 export const hiraganaData = [
@@ -60,6 +61,33 @@ export const hiraganaData = [
     { character: 'を', romaji: 'wo', row: 'wa', column: 'o', strokeCount: 3 },
     // N
     { character: 'ん', romaji: 'n', row: 'n', column: 'n', strokeCount: 1 },
+    // Dakuten (゛) - Voiced consonants (tenten)
+    { character: 'が', romaji: 'ga', row: 'ga', column: 'a', strokeCount: 4 },
+    { character: 'ぎ', romaji: 'gi', row: 'ga', column: 'i', strokeCount: 5 },
+    { character: 'ぐ', romaji: 'gu', row: 'ga', column: 'u', strokeCount: 2 },
+    { character: 'げ', romaji: 'ge', row: 'ga', column: 'e', strokeCount: 4 },
+    { character: 'ご', romaji: 'go', row: 'ga', column: 'o', strokeCount: 3 },
+    { character: 'ざ', romaji: 'za', row: 'za', column: 'a', strokeCount: 4 },
+    { character: 'じ', romaji: 'ji', row: 'za', column: 'i', strokeCount: 2 },
+    { character: 'ず', romaji: 'zu', row: 'za', column: 'u', strokeCount: 3 },
+    { character: 'ぜ', romaji: 'ze', row: 'za', column: 'e', strokeCount: 4 },
+    { character: 'ぞ', romaji: 'zo', row: 'za', column: 'o', strokeCount: 2 },
+    { character: 'だ', romaji: 'da', row: 'da', column: 'a', strokeCount: 5 },
+    { character: 'ぢ', romaji: 'di', row: 'da', column: 'i', strokeCount: 3 },
+    { character: 'づ', romaji: 'du', row: 'da', column: 'u', strokeCount: 2 },
+    { character: 'で', romaji: 'de', row: 'da', column: 'e', strokeCount: 2 },
+    { character: 'ど', romaji: 'do', row: 'da', column: 'o', strokeCount: 3 },
+    { character: 'ば', romaji: 'ba', row: 'ba', column: 'a', strokeCount: 4 },
+    { character: 'び', romaji: 'bi', row: 'ba', column: 'i', strokeCount: 2 },
+    { character: 'ぶ', romaji: 'bu', row: 'ba', column: 'u', strokeCount: 5 },
+    { character: 'べ', romaji: 'be', row: 'ba', column: 'e', strokeCount: 2 },
+    { character: 'ぼ', romaji: 'bo', row: 'ba', column: 'o', strokeCount: 5 },
+    // Handakuten (゜) - Semi-voiced consonants (maru)
+    { character: 'ぱ', romaji: 'pa', row: 'pa', column: 'a', strokeCount: 4 },
+    { character: 'ぴ', romaji: 'pi', row: 'pa', column: 'i', strokeCount: 2 },
+    { character: 'ぷ', romaji: 'pu', row: 'pa', column: 'u', strokeCount: 5 },
+    { character: 'ぺ', romaji: 'pe', row: 'pa', column: 'e', strokeCount: 2 },
+    { character: 'ぽ', romaji: 'po', row: 'pa', column: 'o', strokeCount: 5 },
 ];
 
 export const katakanaData = [
@@ -120,4 +148,31 @@ export const katakanaData = [
     { character: 'ヲ', romaji: 'wo', row: 'wa', column: 'o', strokeCount: 3 },
     // N
     { character: 'ン', romaji: 'n', row: 'n', column: 'n', strokeCount: 2 },
+    // Dakuten (゛) - Voiced consonants (tenten)
+    { character: 'ガ', romaji: 'ga', row: 'ga', column: 'a', strokeCount: 3 },
+    { character: 'ギ', romaji: 'gi', row: 'ga', column: 'i', strokeCount: 4 },
+    { character: 'グ', romaji: 'gu', row: 'ga', column: 'u', strokeCount: 3 },
+    { character: 'ゲ', romaji: 'ge', row: 'ga', column: 'e', strokeCount: 4 },
+    { character: 'ゴ', romaji: 'go', row: 'ga', column: 'o', strokeCount: 3 },
+    { character: 'ザ', romaji: 'za', row: 'za', column: 'a', strokeCount: 4 },
+    { character: 'ジ', romaji: 'ji', row: 'za', column: 'i', strokeCount: 4 },
+    { character: 'ズ', romaji: 'zu', row: 'za', column: 'u', strokeCount: 3 },
+    { character: 'ゼ', romaji: 'ze', row: 'za', column: 'e', strokeCount: 3 },
+    { character: 'ゾ', romaji: 'zo', row: 'za', column: 'o', strokeCount: 3 },
+    { character: 'ダ', romaji: 'da', row: 'da', column: 'a', strokeCount: 4 },
+    { character: 'ヂ', romaji: 'di', row: 'da', column: 'i', strokeCount: 4 },
+    { character: 'ヅ', romaji: 'du', row: 'da', column: 'u', strokeCount: 4 },
+    { character: 'デ', romaji: 'de', row: 'da', column: 'e', strokeCount: 4 },
+    { character: 'ド', romaji: 'do', row: 'da', column: 'o', strokeCount: 3 },
+    { character: 'バ', romaji: 'ba', row: 'ba', column: 'a', strokeCount: 3 },
+    { character: 'ビ', romaji: 'bi', row: 'ba', column: 'i', strokeCount: 3 },
+    { character: 'ブ', romaji: 'bu', row: 'ba', column: 'u', strokeCount: 2 },
+    { character: 'ベ', romaji: 'be', row: 'ba', column: 'e', strokeCount: 2 },
+    { character: 'ボ', romaji: 'bo', row: 'ba', column: 'o', strokeCount: 5 },
+    // Handakuten (゜) - Semi-voiced consonants (maru)
+    { character: 'パ', romaji: 'pa', row: 'pa', column: 'a', strokeCount: 3 },
+    { character: 'ピ', romaji: 'pi', row: 'pa', column: 'i', strokeCount: 3 },
+    { character: 'プ', romaji: 'pu', row: 'pa', column: 'u', strokeCount: 2 },
+    { character: 'ペ', romaji: 'pe', row: 'pa', column: 'e', strokeCount: 2 },
+    { character: 'ポ', romaji: 'po', row: 'pa', column: 'o', strokeCount: 5 },
 ];

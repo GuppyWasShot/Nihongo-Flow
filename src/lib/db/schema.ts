@@ -144,10 +144,13 @@ export const mockExams = pgTable('mock_exams', {
     questions: {
       id: number;
       question: string;
+      questionReading?: string | null; // Furigana reading (null = no furigana, e.g., for kanji reading tests)
       options: string[];
+      optionsReading?: string[]; // Furigana for options
       correctAnswer: number;
       explanation?: string;
       passage?: string; // for reading comprehension
+      passageReading?: string; // Furigana for passage
     }[];
   }[]>().notNull(),
   totalTimeLimit: integer('total_time_limit').notNull(), // Total minutes

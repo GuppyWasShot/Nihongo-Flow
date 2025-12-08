@@ -29,13 +29,8 @@ export function ThemeToggle() {
     }
 
     const cycleTheme = () => {
-        if (theme === 'system') {
-            setTheme('light');
-        } else if (theme === 'light') {
-            setTheme('dark');
-        } else {
-            setTheme('system');
-        }
+        // Simple toggle between light and dark
+        setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
     };
 
     // Always show Sun/Moon based on the actual resolved theme (what the user sees)
@@ -49,8 +44,7 @@ export function ThemeToggle() {
     };
 
     const getLabel = () => {
-        if (theme === 'system') return 'System theme (click to switch)';
-        return theme === 'dark' ? 'Dark mode' : 'Light mode';
+        return resolvedTheme === 'dark' ? 'Dark mode (click for light)' : 'Light mode (click for dark)';
     };
 
     return (
@@ -70,7 +64,7 @@ export function ThemeToggle() {
  */
 export function ThemeToggleWithLabel() {
     const [mounted, setMounted] = useState(false);
-    const { theme, setTheme } = useTheme();
+    const { theme, setTheme, resolvedTheme } = useTheme();
 
     useEffect(() => {
         setMounted(true);
@@ -97,33 +91,25 @@ export function ThemeToggleWithLabel() {
             <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
                 <button
                     onClick={() => setTheme('light')}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'light'
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'light' || (theme === 'system' && resolvedTheme === 'light')
                         ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                         }`}
                     aria-label="Light mode"
                 >
                     <Sun className="w-4 h-4" />
+                    <span>Light</span>
                 </button>
                 <button
                     onClick={() => setTheme('dark')}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'dark'
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'dark' || (theme === 'system' && resolvedTheme === 'dark')
                         ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                         }`}
                     aria-label="Dark mode"
                 >
                     <Moon className="w-4 h-4" />
-                </button>
-                <button
-                    onClick={() => setTheme('system')}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'system'
-                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                        }`}
-                    aria-label="System theme"
-                >
-                    <Monitor className="w-4 h-4" />
+                    <span>Dark</span>
                 </button>
             </div>
         </div>

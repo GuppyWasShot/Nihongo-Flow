@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import * as wanakana from 'wanakana';
 import { completeLesson } from '../../app/(dashboard)/learn/[courseId]/unit/[unitId]/lesson/[lessonId]/actions';
 import { FuriganaToggle, useFurigana } from './FuriganaToggle';
+import { SmartFurigana } from './SmartFurigana';
 
 interface QuizSessionProps {
     lesson: {
@@ -41,6 +42,9 @@ interface QuizItem {
     sentence?: string;
     sentenceReading?: string;
     sentenceEnglish?: string;
+    // Vocabulary specific
+    meaning?: string; // English translation
+    reading?: string; // Hiragana reading for furigana display
     // Word bank specific
     words?: string[];
     wordsReading?: string[];
@@ -57,24 +61,11 @@ interface QuizResult {
 }
 
 /**
- * Furigana text component - renders text with optional reading
+ * Furigana text component - uses SmartFurigana for intelligent rendering
+ * Kept for backward compatibility
  */
 function FuriganaText({ text, reading }: { text: string; reading?: string }) {
-    const { showFurigana } = useFurigana();
-
-    if (!showFurigana || !reading) {
-        return <span>{text}</span>;
-    }
-
-    // Simple furigana rendering using ruby tags
-    return (
-        <ruby className="ruby-text">
-            {text}
-            <rp>(</rp>
-            <rt className="text-sm text-slate-500 dark:text-slate-400">{reading}</rt>
-            <rp>)</rp>
-        </ruby>
-    );
+    return <SmartFurigana text={text} reading={reading} />;
 }
 
 export default function QuizSession({ lesson, courseId, unitId }: QuizSessionProps) {
@@ -159,6 +150,10 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                 question: char,
                 answer: content.romaji![idx],
                 type: 'vocabulary' as const,
+                // Include meaning if available (for translations)
+                meaning: (content as any).meanings?.[idx],
+                // Use romaji as reading for hiragana conversion
+                reading: content.romaji![idx],
             }));
             setQuizItems(items);
         }
@@ -658,12 +653,23 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
 
     // ============ RENDER VOCABULARY QUESTION ============
     const renderVocabQuestion = () => {
+        // Convert romaji reading to hiragana for furigana display
+        const hiraganaReading = currentItem.reading
+            ? wanakana.toHiragana(currentItem.reading)
+            : undefined;
+
         return (
             <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700/50 p-14 mb-8 text-center shadow-sm">
                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">What is the reading?</p>
                 <div className="text-9xl font-semibold text-slate-900 dark:text-slate-100 mb-8">
-                    {currentItem.question}
+                    <SmartFurigana text={currentItem.question} reading={hiraganaReading} />
                 </div>
+                {/* Show English translation if available */}
+                {currentItem.meaning && (
+                    <p className="text-xl text-slate-600 dark:text-slate-400 mt-4">
+                        {currentItem.meaning}
+                    </p>
+                )}
             </div>
         );
     };
@@ -768,15 +774,36 @@ export default function QuizSession({ lesson, courseId, unitId }: QuizSessionPro
                             <form onSubmit={handleSubmit} className="space-y-5">
                                 {/* Show input for fill_blank and legacy types */}
                                 {currentItem.type !== 'word_bank' && currentItem.type !== 'multiple_choice' && (
-                                    <input
-                                        ref={inputRef}
-                                        type="text"
-                                        value={userAnswer}
-                                        onChange={(e) => setUserAnswer(e.target.value)}
-                                        placeholder={currentItem.type === 'fill_blank' ? "Type the particle" : "Type in romaji"}
-                                        autoFocus
-                                        className="w-full px-8 py-5 text-3xl text-center border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-transparent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
-                                    />
+                                    <div className="space-y-2">
+                                        <input
+                                            ref={inputRef}
+                                            type="text"
+                                            value={userAnswer}
+                                            onChange={(e) => setUserAnswer(e.target.value)}
+                                            placeholder={currentItem.type === 'fill_blank' ? "Type the particle" : "Type in romaji"}
+                                            autoFocus
+                                            className="w-full px-8 py-5 text-3xl text-center border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-transparent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                                        />
+                                        {/* Hiragana Preview - shows what the romaji converts to */}
+                                        {/* Hide for kana lessons where showing preview would spoil the answer */}
+                                        {userAnswer.length > 0 &&
+                                            !lesson.title.toLowerCase().includes('hiragana') &&
+                                            !lesson.title.toLowerCase().includes('katakana') &&
+                                            !lesson.title.toLowerCase().includes('kana') && (
+                                                <div className="flex items-center justify-center gap-2 py-2">
+                                                    <span className="text-sm text-slate-500 dark:text-slate-400">Will submit:</span>
+                                                    <span className="text-xl font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-1 rounded-lg">
+                                                        {wanakana.toHiragana(userAnswer)}
+                                                    </span>
+                                                    {/* Special note for wa/ha distinction */}
+                                                    {(userAnswer.toLowerCase() === 'ha' || userAnswer.toLowerCase() === 'wa') && (
+                                                        <span className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-lg">
+                                                            {userAnswer.toLowerCase() === 'ha' ? 'は (ha sound)' : 'わ (wa sound)'}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
+                                    </div>
                                 )}
                                 <button
                                     type="submit"

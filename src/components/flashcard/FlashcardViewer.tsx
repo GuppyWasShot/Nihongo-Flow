@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { RotateCcw, Check, X, ChevronRight, Volume2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Check, X, Save, LogOut } from 'lucide-react';
 
 interface FlashcardItem {
     id: number;
@@ -20,14 +20,17 @@ interface FlashcardItem {
 interface FlashcardViewerProps {
     items: FlashcardItem[];
     mode: 'recognition' | 'production' | 'cram' | 'test';
-    onComplete: (results: { correct: number; incorrect: number }) => void;
+    itemType: 'kanji' | 'vocabulary';
+    onComplete: (results: { correct: number; incorrect: number; details: { id: number; correct: boolean }[] }) => void;
+    onSaveAndQuit?: (results: { id: number; correct: boolean }[], remainingIds: number[]) => void;
 }
 
-export default function FlashcardViewer({ items, mode, onComplete }: FlashcardViewerProps) {
+export default function FlashcardViewer({ items, mode, itemType, onComplete, onSaveAndQuit }: FlashcardViewerProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
     const [results, setResults] = useState<{ id: number; correct: boolean }[]>([]);
     const [shuffledItems] = useState(() => [...items].sort(() => Math.random() - 0.5));
+    const [showSaveConfirm, setShowSaveConfirm] = useState(false);
 
     const currentCard = shuffledItems[currentIndex];
     const progress = ((currentIndex + 1) / shuffledItems.length) * 100;
@@ -36,16 +39,22 @@ export default function FlashcardViewer({ items, mode, onComplete }: FlashcardVi
     const handleFlip = () => setIsFlipped(!isFlipped);
 
     const handleGrade = (wasCorrect: boolean) => {
-        setResults([...results, { id: currentCard.id, correct: wasCorrect }]);
+        const newResults = [...results, { id: currentCard.id, correct: wasCorrect }];
+        setResults(newResults);
 
         if (currentIndex + 1 >= shuffledItems.length) {
-            const correctCount = results.filter(r => r.correct).length + (wasCorrect ? 1 : 0);
-            const incorrectCount = results.filter(r => !r.correct).length + (wasCorrect ? 0 : 1);
-            onComplete({ correct: correctCount, incorrect: incorrectCount });
+            const correctCount = newResults.filter(r => r.correct).length;
+            const incorrectCount = newResults.filter(r => !r.correct).length;
+            onComplete({ correct: correctCount, incorrect: incorrectCount, details: newResults });
         } else {
             setCurrentIndex(currentIndex + 1);
             setIsFlipped(false);
         }
+    };
+
+    const handleSaveAndQuit = () => {
+        const remainingIds = shuffledItems.slice(currentIndex).map(item => item.id);
+        onSaveAndQuit?.(results, remainingIds);
     };
 
     // Front content (question)
@@ -130,11 +139,22 @@ export default function FlashcardViewer({ items, mode, onComplete }: FlashcardVi
 
     return (
         <div className="max-w-xl mx-auto">
-            {/* Progress Bar */}
+            {/* Progress Bar with Save & Quit */}
             <div className="mb-6">
-                <div className="flex justify-between text-sm text-slate-500 dark:text-slate-400 mb-2">
+                <div className="flex justify-between items-center text-sm text-slate-500 dark:text-slate-400 mb-2">
                     <span>{currentIndex + 1} / {shuffledItems.length}</span>
-                    <span>{Math.round(progress)}%</span>
+                    <div className="flex items-center gap-4">
+                        <span>{Math.round(progress)}%</span>
+                        {onSaveAndQuit && results.length > 0 && (
+                            <button
+                                onClick={() => setShowSaveConfirm(true)}
+                                className="flex items-center gap-1 px-3 py-1 text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-lg hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors"
+                            >
+                                <Save className="w-3 h-3" />
+                                Save & Quit
+                            </button>
+                        )}
+                    </div>
                 </div>
                 <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                     <motion.div
@@ -144,7 +164,40 @@ export default function FlashcardViewer({ items, mode, onComplete }: FlashcardVi
                         transition={{ duration: 0.3 }}
                     />
                 </div>
+                {/* Progress indicators */}
+                <div className="flex items-center gap-2 mt-2 text-xs">
+                    <span className="text-emerald-600 dark:text-emerald-400">✓ {results.filter(r => r.correct).length}</span>
+                    <span className="text-rose-600 dark:text-rose-400">✗ {results.filter(r => !r.correct).length}</span>
+                </div>
             </div>
+
+            {/* Save Confirmation Modal */}
+            {showSaveConfirm && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-sm w-full">
+                        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                            Save Progress?
+                        </h3>
+                        <p className="text-slate-500 dark:text-slate-400 mb-4">
+                            Your progress ({results.length} cards reviewed) will be saved. You can continue later.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowSaveConfirm(false)}
+                                className="flex-1 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSaveAndQuit}
+                                className="flex-1 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium"
+                            >
+                                Save & Quit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Flashcard */}
             <div className="perspective-1000 mb-8">

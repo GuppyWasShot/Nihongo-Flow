@@ -7,6 +7,7 @@ import { notFound, redirect } from 'next/navigation';
 import { Breadcrumb } from '../../../../../components/Breadcrumb';
 import { BookOpen, Volume2, Layers, Pencil, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { KanjiStrokeOrder } from '../../../../../components/KanjiStrokeOrder';
 
 interface KanjiDetailPageProps {
     params: Promise<{
@@ -206,6 +207,15 @@ export default async function KanjiDetailPage({ params }: KanjiDetailPageProps) 
 
                 {/* Sidebar */}
                 <div className="space-y-6">
+                    {/* Stroke Order Card */}
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/50 p-6 transition-colors duration-200">
+                        <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-5 flex items-center gap-2">
+                            <Pencil className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                            Stroke Order
+                        </h3>
+                        <KanjiStrokeOrder character={kanjiItem.character} size={180} />
+                    </div>
+
                     {/* SRS Progress Card */}
                     {progress && (
                         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/50 p-6 transition-colors duration-200">

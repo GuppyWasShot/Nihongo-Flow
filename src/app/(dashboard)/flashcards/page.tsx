@@ -1,11 +1,12 @@
-import { getUserDecks, getPreMadeDecks } from './actions';
+import { getUserDecks, getPreMadeDecks, getPublicDecks } from './actions';
 import Link from 'next/link';
-import { Layers, Plus, BookOpen, ChevronRight, Sparkles, Clock } from 'lucide-react';
+import { Layers, Plus, BookOpen, ChevronRight, Sparkles, Users, Globe } from 'lucide-react';
 import { PageHeader } from '../../../components/PageHeader';
 
 export default async function FlashcardsPage() {
     const { decks } = await getUserDecks();
     const preMade = await getPreMadeDecks('N5');
+    const { decks: publicDecks } = await getPublicDecks();
 
     return (
         <div className="max-w-4xl mx-auto">
@@ -60,7 +61,7 @@ export default async function FlashcardsPage() {
             </div>
 
             {/* My Decks */}
-            <div>
+            <div className="mb-8">
                 <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
                     <BookOpen className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                     My Decks
@@ -101,6 +102,9 @@ export default async function FlashcardsPage() {
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-4">
+                                        {deck.isPublic && (
+                                            <Globe className="w-4 h-4 text-emerald-500" />
+                                        )}
                                         {deck.jlptLevel && (
                                             <span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded text-xs font-medium">
                                                 {deck.jlptLevel}
@@ -114,6 +118,41 @@ export default async function FlashcardsPage() {
                     </div>
                 )}
             </div>
+
+            {/* Community Decks */}
+            {publicDecks.length > 0 && (
+                <div>
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+                        <Users className="w-5 h-5 text-amber-500" />
+                        Community Decks
+                    </h2>
+                    <div className="grid gap-4">
+                        {publicDecks.slice(0, 5).map((deck) => (
+                            <Link
+                                key={deck.id}
+                                href={`/flashcards/${deck.id}`}
+                                className="group bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 rounded-2xl border border-amber-200/50 dark:border-amber-700/50 p-6 hover:shadow-lg transition-all"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                                            {deck.name}
+                                        </h3>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                                            {(deck.itemIds || []).length} cards • {deck.itemType}
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <Globe className="w-4 h-4 text-amber-500" />
+                                        <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-amber-500 group-hover:translate-x-1 transition-all" />
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
+

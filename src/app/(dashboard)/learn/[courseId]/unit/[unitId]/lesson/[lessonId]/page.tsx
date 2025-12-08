@@ -5,6 +5,7 @@ import { cookies } from 'next/headers';
 import { redirect, notFound } from 'next/navigation';
 import { eq, and, inArray } from 'drizzle-orm';
 import QuizSession from '../../../../../../../../components/lesson/QuizSession';
+import VocabLesson from '../../../../../../../../components/lesson/VocabLesson';
 import { Lock, ArrowLeft, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
@@ -58,6 +59,47 @@ export default async function LessonPage({ params }: LessonPageProps) {
     const [unit] = await db.select()
         .from(units)
         .where(eq(units.id, parseInt(unitId)));
+
+    // ============ PHASE-BASED DEPENDENCY CHECK ============
+    // Grammar lessons require vocab lessons to be completed first
+    const isGrammarLesson = lesson.type === 'theory' || lesson.type === 'grammar' || lesson.type === 'grammar_drill';
+
+    if (isGrammarLesson) {
+        // Get all lessons in this unit
+        const unitLessons = await db.select()
+            .from(lessons)
+            .where(eq(lessons.unitId, parseInt(unitId)));
+
+        // Find vocab lessons
+        const vocabLessons = unitLessons.filter(l =>
+            l.type === 'vocab_drill' || l.title.toLowerCase().includes('vocab')
+        );
+
+        if (vocabLessons.length > 0) {
+            // Check if all vocab lessons are completed
+            const vocabLessonIds = vocabLessons.map(l => l.id);
+            const vocabProgress = await db.select()
+                .from(userProgress)
+                .where(
+                    and(
+                        eq(userProgress.userId, userId),
+                        eq(userProgress.itemType, 'lesson'),
+                        inArray(userProgress.itemId, vocabLessonIds)
+                    )
+                );
+
+            const completedVocabIds = new Set(vocabProgress.map(p => p.itemId));
+            const allVocabComplete = vocabLessons.every(l => completedVocabIds.has(l.id));
+
+            if (!allVocabComplete) {
+                // Redirect to first incomplete vocab lesson
+                const firstIncomplete = vocabLessons.find(l => !completedVocabIds.has(l.id));
+                if (firstIncomplete) {
+                    redirect(`/learn/${courseId}/unit/${unitId}/lesson/${firstIncomplete.id}?msg=vocab_first`);
+                }
+            }
+        }
+    }
 
     // Check vocabulary dependencies
     const requiredVocabIds = (lesson.requiredVocabulary as number[]) || [];
@@ -157,6 +199,18 @@ export default async function LessonPage({ params }: LessonPageProps) {
         content: lesson.content as any,
     };
 
+    // Route to VocabLesson for vocab_lesson type (new two-phase learning)
+    if (lesson.type === 'vocab_lesson') {
+        return (
+            <VocabLesson
+                lesson={lessonData}
+                courseId={courseId}
+                unitId={parseInt(unitId)}
+            />
+        );
+    }
+
+    // All other lesson types use QuizSession
     return (
         <div>
             <QuizSession

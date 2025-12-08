@@ -101,6 +101,7 @@ export function TestOutButton({ unitId, unitTitle }: TestOutButtonProps) {
             onClick={handleClick}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors border border-amber-200 dark:border-amber-700/50"
             title="Skip ahead if you already know this material"
+            suppressHydrationWarning
         >
             <FastForward className="w-3.5 h-3.5" />
             Test Out
